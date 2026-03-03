@@ -552,7 +552,15 @@
             
             body.innerHTML = sorted.map(i => {
                 const fullRepoTag = i.Repository + ":" + i.Tag;
-                const usedBy = listData.filter(c => c.Image === fullRepoTag || c.Image === i.ID).map(c => c.Names);
+                const usedBy = listData.filter(c => {
+                    // Coincidencia por nombre completo (repo:tag)
+                    if (c.Image === fullRepoTag) return true;
+                    // Coincidencia si el contenedor no tiene tag pero el repo coincide (asumiendo latest)
+                    if (c.Image === i.Repository && i.Tag === "latest") return true;
+                    // Coincidencia por ID (el ID en ps suele ser corto, ej: 12 caracteres)
+                    if (i.ID.startsWith(c.Image) || c.Image.startsWith(i.ID)) return true;
+                    return false;
+                }).map(c => c.Names);
                 return `
                 <tr>
                     <td><span class="fw-bold text-info">${i.Repository}</span></td>

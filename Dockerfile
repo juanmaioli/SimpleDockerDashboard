@@ -24,8 +24,10 @@ COPY ./apache_data/ /etc/apache2/
 # Copiamos la configuración personalizada de PHP
 COPY ./php_data/php.ini /usr/local/etc/php/php.ini
 
-# Habilitamos módulos de Apache (aseguramos que estén activos independientemente de los archivos copiados)
-RUN a2enmod rewrite headers
+# Corregimos el problema de los módulos: 
+# Eliminamos archivos reales en mods-enabled que deberían ser symlinks para que a2enmod no falle
+RUN rm -f /etc/apache2/mods-enabled/rewrite.load /etc/apache2/mods-enabled/headers.load \
+    && a2enmod rewrite headers
 
 # Creamos el grupo docker con el GID correcto (126) para que coincida con el host
 # Y agregamos www-data a ese grupo

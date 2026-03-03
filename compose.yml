@@ -1,9 +1,9 @@
 services:
-  SimpleDockerDashboard:
+  simpledockerdashboard:
     build:
       context: .
       dockerfile: Dockerfile
-    container_name: SimpleDockerDashboard
+    container_name: simpledockerdashboard
     restart: always
     volumes:
       - ./www_data:/var/www/html
