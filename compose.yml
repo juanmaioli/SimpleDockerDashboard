@@ -1,0 +1,15 @@
+services:
+  SimpleDockerDashboard:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: SimpleDockerDashboard
+    restart: always
+    volumes:
+      - ./www_data:/var/www/html
+      - /var/run/docker.sock:/var/run/docker.sock
+    environment:
+      - DASHBOARD_USER=${DASHBOARD_USER}
+      - DASHBOARD_PASS=${DASHBOARD_PASS}
+    ports:
+      - "6080:80"
