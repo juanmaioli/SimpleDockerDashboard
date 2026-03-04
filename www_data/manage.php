@@ -9,7 +9,7 @@ $id = $input['id'] ?? null;
 $action = $input['action'] ?? null;
 
 // Validamos parámetros
-if (!$id || !in_array($action, ['start', 'stop', 'logs', 'rm', 'rmi', 'inspect'])) {
+if (!$id || !in_array($action, ['start', 'stop', 'logs', 'rm', 'rmi', 'inspect', 'history'])) {
     http_response_code(400);
     echo json_encode(["error" => "Parámetros inválidos."]);
     exit;
@@ -17,6 +17,9 @@ if (!$id || !in_array($action, ['start', 'stop', 'logs', 'rm', 'rmi', 'inspect']
 
 // Construimos el comando según la acción
 switch ($action) {
+    case 'history':
+        $command = sprintf('docker history -H %s 2>&1', escapeshellarg($id));
+        break;
     case 'inspect':
         $command = sprintf('docker inspect %s 2>&1', escapeshellarg($id));
         break;

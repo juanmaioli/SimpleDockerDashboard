@@ -12,7 +12,7 @@ Una interfaz web minimalista, liviana y **totalmente autocontenida** para gestio
 
 -   📊 **Estadísticas en Tiempo Real:** Visualiza consumo de CPU, Memoria, Red e I/O de disco cada 3 segundos.
 -   📦 **Gestión de Contenedores:** Iniciar, detener, eliminar y ver logs de tus contenedores.
--   🖼️ **Gestión de Imágenes:** Listado completo de imágenes con sus tamaños e identificadores.
+-   🖼️ **Gestión de Imágenes:** Listado completo de imágenes con sus tamaños e identificadores. Ver historial detallado de capas de cada imagen.
 -   🐚 **Terminal Integrada:** Acceso directo vía shell (`docker exec`) a tus contenedores desde el navegador.
 -   🔐 **Seguridad:** Autenticación simple basada en sesiones y variables de entorno.
 -   🎨 **Diseño Moderno:** Interfaz oscura basada en el tema Dracula y Bootstrap 5.3.

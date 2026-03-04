@@ -27,7 +27,7 @@
         .status-up { color: #10b981; }
         .status-down { color: #ef4444; }
         .btn-action { padding: 0.35rem 0.6rem; font-size: 0.9rem; border-radius: 0.5rem; margin-right: 4px; }
-        #logs-content, #inspect-content { background-color: #000; color: #10b981; font-family: 'Courier New', Courier, monospace; padding: 15px; border-radius: 8px; max-height: 500px; overflow-y: auto; white-space: pre-wrap; font-size: 0.85rem; }
+        #logs-content, #inspect-content { background-color: #000; color: #d1d5db; font-family: 'Courier New', Courier, monospace; padding: 15px; border-radius: 8px; max-height: 500px; overflow-y: auto; white-space: pre-wrap; font-size: 0.85rem; }
         #inspect-content { color: #8be9fd; }
         .modal-content { background-color: #1e293b; border: 1px solid #334155; }
         .text-tiny { font-size: 0.75rem; }
@@ -228,6 +228,21 @@
         </div>
     </div>
 
+    <!-- Modal para Historial -->
+    <div class="modal fade" id="historyModal" tabindex="-1">
+        <div class="modal-dialog modal-xl">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="historyModalLabel"><i class="bi bi-clock-history me-2"></i> Historial de la Imagen</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div id="history-content" style="background-color: #000; color: #d1d5db; font-family: 'Courier New', Courier, monospace; padding: 15px; border-radius: 8px; max-height: 500px; overflow-y: auto; white-space: pre; font-size: 0.85rem;">Cargando historial...</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Bootstrap Bundle with Popper -->
     <script src="assets/js/bootstrap.bundle.min.js"></script>
 
@@ -242,6 +257,7 @@
         };
         const logsModal = new bootstrap.Modal(document.getElementById('logsModal'));
         const inspectModal = new bootstrap.Modal(document.getElementById('inspectModal'));
+        const historyModal = new bootstrap.Modal(document.getElementById('historyModal'));
 
         // Terminal Vars
         let consoleHistory = [];
@@ -453,6 +469,21 @@
             } catch (e) { document.getElementById('inspect-content').innerText = "Error."; }
         }
 
+        async function showHistory(id) {
+            document.getElementById('historyModalLabel').innerText = `Historial: ${id}`;
+            document.getElementById('history-content').innerText = "Cargando historial...";
+            historyModal.show();
+            try {
+                const res = await fetch('manage.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ id, action: 'history' })
+                });
+                const data = await res.json();
+                document.getElementById('history-content').innerText = data.output || "Sin historial disponible.";
+            } catch (e) { document.getElementById('history-content').innerText = "Error."; }
+        }
+
         function setSort(type, key) {
             if (sortConfigs[type].key === key) sortConfigs[type].direction = sortConfigs[type].direction === 'asc' ? 'desc' : 'asc';
             else { sortConfigs[type].key = key; sortConfigs[type].direction = 'asc'; }
@@ -576,6 +607,7 @@
                     </td>
                     <td><span class="badge bg-dark border border-secondary">${i.Size}</span></td>
                     <td>
+                        <button class="btn btn-outline-info btn-action" onclick="showHistory('${i.ID}')" title="Historial"><i class="bi bi-clock-history"></i></button>
                         <button class="btn btn-outline-danger btn-action" onclick="handleAction('${i.ID}', 'rmi', this)" title="Borrar Imagen"><i class="bi bi-trash"></i></button>
                     </td>
                 </tr>
