@@ -484,6 +484,34 @@
             } catch (e) { document.getElementById('history-content').innerText = "Error."; }
         }
 
+        async function openGitHub(repoName, id) {
+            try {
+                const res = await fetch('manage.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ id, action: 'inspect' })
+                });
+                const data = await res.json();
+                const inspect = JSON.parse(data.output);
+                const labels = inspect[0]?.Config?.Labels || {};
+                
+                let url = labels['org.opencontainers.image.source'] || 
+                          labels['org.opencontainers.image.url'] || 
+                          labels['org.label-schema.vcs-url'];
+                
+                if (url) {
+                    window.open(url, '_blank');
+                } else {
+                    // Si no tiene etiqueta de origen, buscamos en GitHub por el nombre del repo
+                    const searchName = repoName.includes('/') ? repoName : repoName;
+                    window.open(`https://github.com/search?q=${encodeURIComponent(searchName)}`, '_blank');
+                }
+            } catch (e) {
+                console.error("Error al buscar el repositorio:", e);
+                window.open(`https://github.com/search?q=${encodeURIComponent(repoName)}`, '_blank');
+            }
+        }
+
         function setSort(type, key) {
             if (sortConfigs[type].key === key) sortConfigs[type].direction = sortConfigs[type].direction === 'asc' ? 'desc' : 'asc';
             else { sortConfigs[type].key = key; sortConfigs[type].direction = 'asc'; }
@@ -608,6 +636,7 @@
                     <td><span class="badge bg-dark border border-secondary">${i.Size}</span></td>
                     <td>
                         <button class="btn btn-outline-info btn-action" onclick="showHistory('${i.ID}')" title="Historial"><i class="bi bi-clock-history"></i></button>
+                        <button class="btn btn-outline-light btn-action" onclick="openGitHub('${i.Repository}', '${i.ID}')" title="GitHub"><i class="bi bi-github"></i></button>
                         <button class="btn btn-outline-danger btn-action" onclick="handleAction('${i.ID}', 'rmi', this)" title="Borrar Imagen"><i class="bi bi-trash"></i></button>
                     </td>
                 </tr>

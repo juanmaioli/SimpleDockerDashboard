@@ -11,5 +11,10 @@ services:
     environment:
       - DASHBOARD_USER=${DASHBOARD_USER}
       - DASHBOARD_PASS=${DASHBOARD_PASS}
+    deploy:
+      resources:
+        limits:
+          cpus: '0.10'
+          memory: 256M
     ports:
       - "6080:80"
