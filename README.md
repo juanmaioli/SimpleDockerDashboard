@@ -11,9 +11,11 @@ Una interfaz web minimalista, liviana y **totalmente autocontenida** para gestio
 ## ✨ Características
 
 -   📊 **Estadísticas en Tiempo Real:** Visualiza consumo de CPU, Memoria, Red e I/O de disco cada 3 segundos.
+-   🖥️ **Resumen del Sistema:** Panel de control rápido con uso de CPU/RAM del host, estado de contenedores y tamaño total de imágenes.
 -   📦 **Gestión de Contenedores:** Iniciar, detener, eliminar y ver logs de tus contenedores.
 -   🖼️ **Gestión de Imágenes:** Listado completo de imágenes con sus tamaños e identificadores. Ver historial detallado de capas de cada imagen.
 -   🔗 **Repositorios GitHub:** Acceso directo al código fuente de las imágenes desde la pestaña de Imágenes (detección automática mediante labels o búsqueda).
+-   🌐 **Gestión de Puertos:** Visualización de mapeos de red activos y enlaces directos para abrir servicios en el navegador.
 -   🐚 **Terminal Integrada:** Acceso directo vía shell (`docker exec`) a tus contenedores desde el navegador.
 -   🔐 **Seguridad:** Autenticación simple basada en sesiones y variables de entorno.
 -   🎨 **Diseño Moderno:** Interfaz oscura basada en el tema Dracula y Bootstrap 5.3.

@@ -61,6 +61,44 @@
         .row-danger { background-color: rgba(239, 68, 68, 0.1) !important; }
         .text-warning-custom { color: #fbbf24 !important; }
         .text-danger-custom { color: #ef4444 !important; }
+
+        /* Summary Card Styles */
+        .summary-card {
+            background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+            border: 1px solid #334155;
+            border-radius: 1rem;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1.5rem;
+        }
+        .summary-item {
+            display: flex;
+            flex-direction: column;
+        }
+        .summary-label {
+            color: #94a3b8;
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 0.5rem;
+        }
+        .summary-value {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: #f8f8f2;
+        }
+        .summary-sub {
+            font-size: 0.75rem;
+            color: #64748b;
+            margin-top: 0.25rem;
+        }
+        .summary-icon {
+            font-size: 1.5rem;
+            margin-bottom: 0.5rem;
+            color: #0ea5e9;
+        }
     </style>
 </head>
 <body>
@@ -75,6 +113,34 @@
                 <a href="logout.php" class="btn btn-outline-danger btn-sm">
                     <i class="bi bi-box-arrow-right"></i> Salir
                 </a>
+            </div>
+        </div>
+
+        <!-- Resumen del Sistema -->
+        <div class="summary-card" id="system-summary">
+            <div class="summary-item">
+                <i class="bi bi-cpu summary-icon"></i>
+                <span class="summary-label">CPU & OS</span>
+                <span class="summary-value" id="sum-cpu-usage">-- %</span>
+                <span class="summary-sub" id="sum-os-info">Cargando...</span>
+            </div>
+            <div class="summary-item">
+                <i class="bi bi-memory summary-icon text-warning"></i>
+                <span class="summary-label">Memoria RAM</span>
+                <span class="summary-value" id="sum-mem-usage">-- GB</span>
+                <span class="summary-sub" id="sum-mem-total">Total: -- GB</span>
+            </div>
+            <div class="summary-item">
+                <i class="bi bi-box summary-icon text-success"></i>
+                <span class="summary-label">Contenedores</span>
+                <span class="summary-value" id="sum-cont-running">-- Activos</span>
+                <span class="summary-sub" id="sum-cont-total">Total: --</span>
+            </div>
+            <div class="summary-item">
+                <i class="bi bi-images summary-icon text-info"></i>
+                <span class="summary-label">Imágenes</span>
+                <span class="summary-value" id="sum-img-count">-- Imagenes</span>
+                <span class="summary-sub" id="sum-img-size">Tamaño: -- GB</span>
             </div>
         </div>
 
@@ -93,6 +159,11 @@
             <li class="nav-item" role="presentation">
                 <button class="nav-link" id="images-tab" data-bs-toggle="pill" data-bs-target="#images-pane" type="button" role="tab">
                     <i class="bi bi-layers me-2"></i> Imágenes
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="ports-tab" data-bs-toggle="pill" data-bs-target="#ports-pane" type="button" role="tab">
+                    <i class="bi bi-diagram-3 me-2"></i> Puertos
                 </button>
             </li>
             <li class="nav-item" role="presentation">
@@ -160,6 +231,25 @@
                                 </tr>
                             </thead>
                             <tbody id="images-body"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Pestaña de Puertos -->
+            <div class="tab-pane fade" id="ports-pane" role="tabpanel">
+                <div class="card p-4">
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle">
+                            <thead>
+                                <tr>
+                                    <th onclick="setSort('ports', 'Names')">Contenedor <i id="sort-ports-Names" class="bi bi-arrow-down-up sort-icon"></i></th>
+                                    <th>Mapeo (Host -> Contenedor)</th>
+                                    <th>Protocolo</th>
+                                    <th>Acción</th>
+                                </tr>
+                            </thead>
+                            <tbody id="ports-body"></tbody>
                         </table>
                     </div>
                 </div>
@@ -253,7 +343,8 @@
         let sortConfigs = {
             stats: { key: 'Name', direction: 'asc' },
             list: { key: 'Names', direction: 'asc' },
-            images: { key: 'Repository', direction: 'asc' }
+            images: { key: 'Repository', direction: 'asc' },
+            ports: { key: 'Names', direction: 'asc' }
         };
         const logsModal = new bootstrap.Modal(document.getElementById('logsModal'));
         const inspectModal = new bootstrap.Modal(document.getElementById('inspectModal'));
@@ -266,7 +357,7 @@
         let currentContainer = null;
 
         async function updateData() {
-            await Promise.all([fetchStats(), fetchList(), fetchImages()]);
+            await Promise.all([fetchStats(), fetchList(), fetchImages(), fetchInfo()]);
             renderAll();
             updateConsoleSelect();
         }
@@ -535,7 +626,7 @@
             return isNaN(cleanVal) ? cleanVal : parseFloat(cleanVal);
         }
 
-        function renderAll() { renderStats(); renderList(); renderImages(); }
+        function renderAll() { renderStats(); renderList(); renderImages(); renderPorts(); }
 
         function renderStats() {
             const body = document.getElementById('stats-body');
@@ -641,6 +732,80 @@
                     </td>
                 </tr>
             `}).join('');
+        }
+
+        function renderPorts() {
+            const body = document.getElementById('ports-body');
+            const sorted = [...listData].sort((a, b) => {
+                const vA = a[sortConfigs.ports.key].toLowerCase();
+                const vB = b[sortConfigs.ports.key].toLowerCase();
+                return sortConfigs.ports.direction === 'asc' ? (vA > vB ? 1 : -1) : (vA < vB ? 1 : -1);
+            });
+
+            let html = '';
+            sorted.forEach(c => {
+                if (!c.Ports || c.Ports === '-') return;
+
+                const portMappings = c.Ports.split(',').map(p => {
+                    const part = p.trim();
+                    const match = part.match(/(?:(?:[\d.]+)|(?:::)):(\d+)->(\d+)\/(\w+)/);
+                    if (match) {
+                        return { host: match[1], container: match[2], proto: match[3] };
+                    }
+                    return null;
+                }).filter(p => p !== null);
+
+                portMappings.forEach(m => {
+                    html += `
+                    <tr>
+                        <td><span class="fw-bold text-info">${c.Names}</span></td>
+                        <td><code class="text-light">${m.host}</code></td>
+                        <td><code class="text-secondary">${m.container}</code></td>
+                        <td><span class="badge bg-dark border border-secondary">${m.proto.toUpperCase()}</span></td>
+                        <td>
+                            <a href="http://${window.location.hostname}:${m.host}" target="_blank" class="btn btn-outline-success btn-action">
+                                <i class="bi bi-box-arrow-up-right"></i> Abrir
+                            </a>
+                        </td>
+                    </tr>`;
+                });
+            });
+            body.innerHTML = html || '<tr><td colspan="4" class="text-center text-secondary">No hay puertos mapeados activos.</td></tr>';
+        }
+
+        async function fetchInfo() {
+            try {
+                const res = await fetch('info.php');
+                const data = await res.json();
+                
+                // CPU & OS
+                document.getElementById('sum-cpu-usage').innerText = `${data.host_load['1m'].toFixed(2)} (Load)`;
+                document.getElementById('sum-os-info').innerText = `${data.os} (${data.cpus} CPUs)`;
+                
+                // RAM
+                const usedGb = (data.host_mem.used / (1024**3)).toFixed(2);
+                const totalGb = (data.host_mem.total / (1024**3)).toFixed(2);
+                document.getElementById('sum-mem-usage').innerText = `${usedGb} GB`;
+                document.getElementById('sum-mem-total').innerText = `Total: ${totalGb} GB (${data.host_mem.percent}%)`;
+                
+                // Contenedores
+                document.getElementById('sum-cont-running').innerText = `${data.containers.running} Activos`;
+                document.getElementById('sum-cont-total').innerText = `Total: ${data.containers.total} (${data.containers.stopped} off)`;
+                
+                // Imágenes
+                document.getElementById('sum-img-count').innerText = `${data.images.count} Imágenes`;
+                document.getElementById('sum-img-size').innerText = `Tamaño: ${data.images.size}`;
+                
+            } catch (e) { console.error("Error fetching system info:", e); }
+        }
+
+        function formatBytes(bytes, decimals = 2) {
+            if (bytes === 0) return '0 Bytes';
+            const k = 1024;
+            const dm = decimals < 0 ? 0 : decimals;
+            const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + ' ' + sizes[i];
         }
 
         updateSortIcons(); updateData(); setInterval(updateData, 3000);
