@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>🐳 Simple Docker Dashboard</title>
+    <title>Simple Docker Dashboard</title>
     <!-- Favicon bi-box-seam text-info (SVG Dinámico) -->
     <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='%230dcaf0'><path d='M8.186 1.113a.5.5 0 0 0-.372 0L1.846 3.5l2.404.961L10.404 2zm3.564 1.426L5.596 5 8 6.404l6.154-2.462zm3.25 3.63-6.5 2.6v7.922l6.5-2.6V6.17zm-7.5 10.522V8.77L.5 6.17v7.922zM7.5.582a1 1 0 0 1 .736 0l7.67 3.068A.5.5 0 0 1 16 4.115v8.93a1 1 0 0 1-.607.922l-7 2.8a1 1 0 0 1-.786 0l-7-2.8A1 1 0 0 1 0 13.045V4.115a.5.5 0 0 1 .308-.465z'/></svg>">
     <!-- Bootstrap 5.3 + Iconos -->
