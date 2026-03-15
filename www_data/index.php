@@ -95,7 +95,7 @@
             margin-top: 0.25rem;
         }
         .summary-icon {
-            font-size: 1.5rem;
+            font-size: 3rem;
             margin-bottom: 0.5rem;
             color: #0ea5e9;
         }
