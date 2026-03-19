@@ -62,6 +62,10 @@
         .text-warning-custom { color: #fbbf24 !important; }
         .text-danger-custom { color: #ef4444 !important; }
 
+        /* Estilos para filas de contenedores más grandes */
+        #list-body td { font-size: 1.15rem; vertical-align: middle; }
+        #list-body .text-tiny { font-size: 0.9rem; }
+
         /* Summary Card Styles */
         .summary-card {
             background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
@@ -162,11 +166,6 @@
                 </button>
             </li>
             <li class="nav-item" role="presentation">
-                <button class="nav-link" id="ports-tab" data-bs-toggle="pill" data-bs-target="#ports-pane" type="button" role="tab">
-                    <i class="bi bi-diagram-3 me-2"></i> Puertos
-                </button>
-            </li>
-            <li class="nav-item" role="presentation">
                 <button class="nav-link" id="terminal-tab" data-bs-toggle="pill" data-bs-target="#terminal-pane" type="button" role="tab">
                     <i class="bi bi-terminal me-2"></i> Terminal
                 </button>
@@ -203,9 +202,9 @@
                             <thead>
                                 <tr>
                                     <th onclick="setSort('list', 'Names')">Nombre <i id="sort-list-Names" class="bi bi-arrow-down-up sort-icon"></i></th>
-                                    <th>Imagen</th>
+                                    <th>Id Contenedor</th>
                                     <th onclick="setSort('list', 'Status')">Estado <i id="sort-list-Status" class="bi bi-arrow-down-up sort-icon"></i></th>
-                                    <th>Puertos</th>
+                                    <th onclick="setSort('list', 'Ports')">Puerto <i id="sort-list-Ports" class="bi bi-arrow-down-up sort-icon"></i></th>
                                     <th>Acciones</th>
                                 </tr>
                             </thead>
@@ -218,6 +217,15 @@
             <!-- Pestaña de Imágenes -->
             <div class="tab-pane fade" id="images-pane" role="tabpanel">
                 <div class="card p-4">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h5 class="mb-0"><i class="bi bi-layers me-2"></i> Imágenes Locales</h5>
+                        <div>
+                            <input type="file" id="import-file" accept=".tar" style="display: none;" onchange="handleImport(this)">
+                            <button class="btn btn-primary btn-sm" onclick="document.getElementById('import-file').click()" id="btn-import">
+                                <i class="bi bi-upload me-1"></i> Importar Imagen (.tar)
+                            </button>
+                        </div>
+                    </div>
                     <div class="table-responsive">
                         <table class="table table-hover align-middle">
                             <thead>
@@ -237,7 +245,7 @@
             </div>
             
             <!-- Pestaña de Puertos -->
-            <div class="tab-pane fade" id="ports-pane" role="tabpanel">
+            <!-- <div class="tab-pane fade" id="ports-pane" role="tabpanel">
                 <div class="card p-4">
                     <div class="table-responsive">
                         <table class="table table-hover align-middle">
@@ -253,7 +261,7 @@
                         </table>
                     </div>
                 </div>
-            </div>
+            </div> -->
             
             <!-- Pestaña de Terminal -->
             <div class="tab-pane fade" id="terminal-pane" role="tabpanel">
@@ -318,6 +326,21 @@
         </div>
     </div>
 
+    <!-- Modal para Procesos (Top) -->
+    <div class="modal fade" id="topModal" tabindex="-1">
+        <div class="modal-dialog modal-xl">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="topModalLabel"><i class="bi bi-list-task me-2"></i> Procesos del Contenedor (Top)</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div id="top-content" style="background-color: #000; color: #50fa7b; font-family: 'Courier New', Courier, monospace; padding: 15px; border-radius: 8px; max-height: 500px; overflow-y: auto; white-space: pre; font-size: 0.85rem;">Cargando procesos...</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Modal para Historial -->
     <div class="modal fade" id="historyModal" tabindex="-1">
         <div class="modal-dialog modal-xl">
@@ -348,6 +371,7 @@
         };
         const logsModal = new bootstrap.Modal(document.getElementById('logsModal'));
         const inspectModal = new bootstrap.Modal(document.getElementById('inspectModal'));
+        const topModal = new bootstrap.Modal(document.getElementById('topModal'));
         const historyModal = new bootstrap.Modal(document.getElementById('historyModal'));
 
         // Terminal Vars
@@ -500,6 +524,39 @@
             document.getElementById('cmd-input').focus();
         }
 
+        async function handleImport(input) {
+            const file = input.files[0];
+            if (!file) return;
+
+            const btn = document.getElementById('btn-import');
+            const originalHtml = btn.innerHTML;
+            btn.disabled = true;
+            btn.innerHTML = `<span class="spinner-border spinner-border-sm me-1"></span> Importando...`;
+
+            const formData = new FormData();
+            formData.append('image_tar', file);
+
+            try {
+                const res = await fetch('upload_image.php', {
+                    method: 'POST',
+                    body: formData
+                });
+                const data = await res.json();
+                if (data.success) {
+                    alert("Éxito: " + data.output);
+                    await updateData();
+                } else {
+                    alert("Error: " + data.error);
+                }
+            } catch (e) {
+                alert("Error de red al importar imagen.");
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = originalHtml;
+                input.value = ''; // Limpiamos el input
+            }
+        }
+
         async function handleAction(id, action, btn) {
             const confirmMsg = action === 'rm' ? '¿Borrar contenedor?' : (action === 'rmi' ? '¿Borrar imagen?' : null);
             if (confirmMsg && !confirm(confirmMsg)) return;
@@ -519,8 +576,8 @@
                 });
                 const data = await res.json();
                 if (data.success) await updateData();
-                else alert("Error: " + data.error);
-            } catch (e) { alert("Error."); }
+                else alert("Error: " + (data.error || "Desconocido"));
+            } catch (e) { alert("Error de comunicación con el servidor."); }
             finally { btn.disabled = false; btn.innerHTML = originalHtml; }
         }
 
@@ -558,6 +615,21 @@
                     document.getElementById('inspect-content').innerText = data.output;
                 }
             } catch (e) { document.getElementById('inspect-content').innerText = "Error."; }
+        }
+
+        async function showTop(id) {
+            document.getElementById('topModalLabel').innerText = `Procesos: ${id}`;
+            document.getElementById('top-content').innerText = "Cargando procesos...";
+            topModal.show();
+            try {
+                const res = await fetch('manage.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ id, action: 'top' })
+                });
+                const data = await res.json();
+                document.getElementById('top-content').innerText = data.output || "No se pudieron obtener los procesos.";
+            } catch (e) { document.getElementById('top-content').innerText = "Error de red."; }
         }
 
         async function showHistory(id) {
@@ -669,21 +741,58 @@
         function renderList() {
             const body = document.getElementById('list-body');
             const sorted = [...listData].sort((a, b) => {
-                const vA = a[sortConfigs.list.key].toLowerCase();
-                const vB = b[sortConfigs.list.key].toLowerCase();
+                let vA = a[sortConfigs.list.key];
+                let vB = b[sortConfigs.list.key];
+
+                if (sortConfigs.list.key === 'Ports') {
+                    const getPort = (s) => {
+                        const m = (s || '').match(/:(\d+)->/);
+                        return m ? parseInt(m[1]) : 0;
+                    };
+                    vA = getPort(vA);
+                    vB = getPort(vB);
+                } else {
+                    vA = (vA || '').toLowerCase();
+                    vB = (vB || '').toLowerCase();
+                }
+
+                if (vA === vB) return 0;
                 return sortConfigs.list.direction === 'asc' ? (vA > vB ? 1 : -1) : (vA < vB ? 1 : -1);
             });
             body.innerHTML = sorted.map(c => {
                 const isUp = c.Status.includes('Up');
+                
+                // Parsing de puertos para visualización rica
+                const portMappings = (c.Ports || '').split(',').map(p => {
+                    const part = p.trim();
+                    const match = part.match(/(?:(?:[\d.]+)|(?:::)):(\d+)->(\d+)\/(\w+)/);
+                    return match ? { host: match[1], container: match[2], proto: match[3] } : null;
+                }).filter(p => p !== null);
+
+                const portsHtml = portMappings.length > 0 ? portMappings.map(m => `
+                    <div class="mb-1 text-tiny">
+                        <code class="text-light">${m.host}</code><i class="bi bi-arrow-right mx-1 text-secondary"></i><code class="text-secondary">${m.container}</code>
+                    </div>
+                `).join('') : '<small class="text-secondary">-</small>';
+
+                const openButtonsHtml = portMappings.map(m => `
+                    <a href="http://${window.location.hostname}:${m.host}" target="_blank" class="btn btn-outline-success btn-action" title="Abrir Puerto ${m.host}">
+                        <i class="bi bi-box-arrow-up-right"></i>
+                    </a>
+                `).join('');
+
                 return `
                 <tr>
-                    <td><span class="fw-bold text-info">${c.Names}</span><br><small class="text-secondary text-tiny">${c.ID}</small></td>
-                    <td><code class="text-light text-tiny">${c.Image}</code></td>
+                    <td><span class="fw-bold text-info">${c.Names}</span></td>
+                    <td><code class="text-secondary small">${c.ID}</code></td>
                     <td><i class="bi bi-circle-fill me-2 ${isUp ? 'status-up' : 'status-down'}" style="font-size: 0.7rem;"></i><span class="text-tiny">${c.Status}</span></td>
-                    <td><small class="text-tiny">${c.Ports || '-'}</small></td>
+                    <td>${portsHtml}</td>
                     <td class="text-nowrap">
+                        ${openButtonsHtml}
                         <button class="btn btn-outline-info btn-action" onclick="handleAction('${c.ID}', 'logs', this)" title="Logs"><i class="bi bi-eye"></i></button>
                         <button class="btn btn-outline-warning btn-action" onclick="handleAction('${c.ID}', 'inspect', this)" title="Inspeccionar"><i class="bi bi-search"></i></button>
+                        <button class="btn btn-outline-secondary btn-action" onclick="showTop('${c.ID}')" title="Procesos (Top)"><i class="bi bi-list-task"></i></button>
+                        <button class="btn btn-outline-primary btn-action" onclick="handleAction('${c.ID}', 'restart', this)" title="Reiniciar"><i class="bi bi-arrow-clockwise"></i></button>
                         ${isUp ? `<button class="btn btn-outline-danger btn-action" onclick="handleAction('${c.ID}', 'stop', this)" title="Stop"><i class="bi bi-stop-fill"></i></button>` 
                                : `<button class="btn btn-outline-success btn-action" onclick="handleAction('${c.ID}', 'start', this)" title="Start"><i class="bi bi-play-fill"></i></button>`}
                         <button class="btn btn-outline-secondary btn-action" onclick="handleAction('${c.ID}', 'rm', this)" title="Borrar"><i class="bi bi-trash"></i></button>
@@ -728,6 +837,7 @@
                     <td>
                         <button class="btn btn-outline-info btn-action" onclick="showHistory('${i.ID}')" title="Historial"><i class="bi bi-clock-history"></i></button>
                         <button class="btn btn-outline-light btn-action" onclick="openGitHub('${i.Repository}', '${i.ID}')" title="GitHub"><i class="bi bi-github"></i></button>
+                        <a href="download_image.php?id=${i.ID}&repo=${encodeURIComponent(i.Repository)}&tag=${encodeURIComponent(i.Tag)}" class="btn btn-outline-success btn-action" title="Descargar .tar"><i class="bi bi-download"></i></a>
                         <button class="btn btn-outline-danger btn-action" onclick="handleAction('${i.ID}', 'rmi', this)" title="Borrar Imagen"><i class="bi bi-trash"></i></button>
                     </td>
                 </tr>

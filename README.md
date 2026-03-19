@@ -12,11 +12,12 @@ Una interfaz web minimalista, liviana y **totalmente autocontenida** para gestio
 
 -   📊 **Estadísticas en Tiempo Real:** Visualiza consumo de CPU, Memoria, Red e I/O de disco cada 3 segundos.
 -   🖥️ **Resumen del Sistema:** Panel de control rápido con uso de CPU/RAM del host, estado de contenedores y tamaño total de imágenes.
--   📦 **Gestión de Contenedores:** Iniciar, detener, eliminar y ver logs de tus contenedores.
--   🖼️ **Gestión de Imágenes:** Listado completo de imágenes con sus tamaños e identificadores. Ver historial detallado de capas de cada imagen.
--   🔗 **Repositorios GitHub:** Acceso directo al código fuente de las imágenes desde la pestaña de Imágenes (detección automática mediante labels o búsqueda).
--   🌐 **Gestión de Puertos:** Visualización de mapeos de red activos y enlaces directos para abrir servicios en el navegador.
--   🐚 **Terminal Integrada:** Acceso directo vía shell (`docker exec`) a tus contenedores desde el navegador.
+-   📦 **Gestión de Contenedores:** Iniciar, detener, reiniciar, eliminar y ver logs de tus contenedores.
+-   🔍 **Procesos en Vivo:** Visualiza los procesos activos dentro de cada contenedor (`docker top`) en una terminal integrada.
+-   🖼️ **Gestión de Imágenes:** Listado completo, historial de capas y herramientas de **Importación/Exportación** mediante archivos `.tar`.
+-   🔗 **Repositorios GitHub:** Acceso directo al código fuente de las imágenes (detección automática o búsqueda).
+-   🌐 **Gestión de Puertos:** Enlaces directos para abrir servicios en el navegador desde la lista de contenedores.
+-   🐚 **Terminal Integrada:** Acceso directo vía shell (`docker exec`) desde el navegador.
 -   🔐 **Seguridad:** Autenticación simple basada en sesiones y variables de entorno.
 -   🎨 **Diseño Moderno:** Interfaz oscura basada en el tema Dracula y Bootstrap 5.3.
 -   🌐 **Offline-Ready:** Todas las dependencias (Bootstrap, Iconos, Fuentes) están incluidas localmente.

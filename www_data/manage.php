@@ -9,7 +9,7 @@ $id = $input['id'] ?? null;
 $action = $input['action'] ?? null;
 
 // Validamos parámetros
-if (!$id || !in_array($action, ['start', 'stop', 'logs', 'rm', 'rmi', 'inspect', 'history'])) {
+if (!$id || !in_array($action, ['start', 'stop', 'restart', 'logs', 'rm', 'rmi', 'inspect', 'history', 'top'])) {
     http_response_code(400);
     echo json_encode(["error" => "Parámetros inválidos."]);
     exit;
@@ -36,15 +36,19 @@ switch ($action) {
         $command = sprintf('docker %s %s 2>&1', escapeshellarg($action), escapeshellarg($id));
 }
 
-$output = shell_exec($command);
+$output = [];
+$return_var = 0;
+exec($command, $output, $return_var);
 
-if ($output === null && !in_array($action, ['rm', 'rmi'])) {
+$outputStr = implode("\n", $output);
+
+if ($return_var !== 0) {
     http_response_code(500);
-    echo json_encode(["error" => "Error al ejecutar el comando Docker."]);
+    echo json_encode(["success" => false, "error" => $outputStr ?: "Error al ejecutar el comando Docker (Código: $return_var)"]);
     exit;
 }
 
 echo json_encode([
     "success" => true, 
-    "output" => $output ? trim($output) : "Operación completada sin salida."
+    "output" => $outputStr ? trim($outputStr) : "Operación completada con éxito."
 ]);
