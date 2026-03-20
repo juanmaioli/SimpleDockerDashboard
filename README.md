@@ -13,7 +13,7 @@ Una interfaz web minimalista, liviana y **totalmente autocontenida** para gestio
 -   📊 **Estadísticas en Tiempo Real:** Visualiza consumo de CPU, Memoria, Red e I/O de disco con ciclo de actualización inteligente.
 -   🖥️ **Resumen del Sistema:** Panel de control rápido con uso de CPU/RAM del host, estado de contenedores y tamaño total de imágenes.
 -   📦 **Gestión de Contenedores:** Iniciar, detener, reiniciar, pausar/reanudar y configurar políticas de **Auto-reinicio**.
--   🔍 **Procesos y Auditoría:** Visualiza procesos activos (`top`) y cambios en el sistema de archivos (`diff`) en tiempo real.
+-   🔍 **Monitoreo y Auditoría:** Visualiza procesos activos (`top`) y cambios en el sistema de archivos (`diff`) en tiempo real.
 -   🖼️ **Gestión de Imágenes:** Listado completo, historial de capas y herramientas de **Importación/Exportación** mediante archivos `.tar`.
 -   🔗 **Repositorios GitHub:** Acceso directo al código fuente de las imágenes (detección automática o búsqueda).
 -   🌐 **Gestión de Puertos:** Enlaces directos para abrir servicios en el navegador desde la lista de contenedores.

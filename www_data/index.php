@@ -28,6 +28,11 @@
         .status-up { color: #10b981; }
         .status-down { color: #ef4444; }
         .btn-action { padding: 0.35rem 0.6rem; font-size: 0.9rem; border-radius: 0.5rem; margin-right: 4px; }
+        
+        /* Ajuste global del tamaño de letra de las tablas */
+        .table td, .table th { font-size: 1.08rem; vertical-align: middle; }
+        .table .text-tiny, .table .small, .table code { font-size: 0.9rem !important; }
+
         #logs-content, #inspect-content { background-color: #000; color: #d1d5db; font-family: 'Courier New', Courier, monospace; padding: 15px; border-radius: 8px; max-height: 500px; overflow-y: auto; white-space: pre-wrap; font-size: 0.85rem; }
         #inspect-content { color: #8be9fd; }
         .modal-content { background-color: #1e293b; border: 1px solid #334155; }
@@ -63,9 +68,8 @@
         .text-warning-custom { color: #fbbf24 !important; }
         .text-danger-custom { color: #ef4444 !important; }
 
-        /* Estilos para filas de contenedores más grandes */
-        #list-body td { font-size: 1.15rem; vertical-align: middle; }
-        #list-body .text-tiny { font-size: 0.9rem; }
+        /* Estilos para filas de contenedores */
+        #list-body td { vertical-align: middle; }
 
         /* Summary Card Styles */
         .summary-card {
