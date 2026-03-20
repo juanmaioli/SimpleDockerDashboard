@@ -10,6 +10,7 @@
     <!-- Bootstrap 5.3 + Iconos -->
     <link href="assets/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="assets/css/bootstrap-icons.min.css">
+    <link rel="stylesheet" href="assets/css/bootstrap-color-extension.css">
     <style>
         body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #0f172a; color: #e2e8f0; }
         .card { background-color: #1e293b; border: 1px solid #334155; border-radius: 1rem; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1); }
@@ -341,6 +342,21 @@
         </div>
     </div>
 
+    <!-- Modal para Cambios (Diff) -->
+    <div class="modal fade" id="diffModal" tabindex="-1">
+        <div class="modal-dialog modal-xl">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="diffModalLabel"><i class="bi bi-file-earmark-diff me-2"></i> Cambios en el Sistema de Archivos (Diff)</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div id="diff-content" style="background-color: #000; color: #ffb86c; font-family: 'Courier New', Courier, monospace; padding: 15px; border-radius: 8px; max-height: 500px; overflow-y: auto; white-space: pre; font-size: 0.85rem;">Cargando cambios...</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Modal para Historial -->
     <div class="modal fade" id="historyModal" tabindex="-1">
         <div class="modal-dialog modal-xl">
@@ -381,9 +397,16 @@
         let currentContainer = null;
 
         async function updateData() {
-            await Promise.all([fetchStats(), fetchList(), fetchImages(), fetchInfo()]);
-            renderAll();
-            updateConsoleSelect();
+            try {
+                await Promise.all([fetchStats(), fetchList(), fetchImages(), fetchInfo()]);
+                renderAll();
+                updateConsoleSelect();
+            } catch (e) {
+                console.error("Error en actualización:", e);
+            } finally {
+                // Programamos la siguiente actualización solo cuando esta termine
+                setTimeout(updateData, 3000);
+            }
         }
 
         async function fetchStats() {
@@ -632,6 +655,21 @@
             } catch (e) { document.getElementById('top-content').innerText = "Error de red."; }
         }
 
+        async function showDiff(id) {
+            document.getElementById('diffModalLabel').innerText = `Cambios (FS): ${id}`;
+            document.getElementById('diff-content').innerText = "Cargando cambios...";
+            diffModal.show();
+            try {
+                const res = await fetch('manage.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ id, action: 'diff' })
+                });
+                const data = await res.json();
+                document.getElementById('diff-content').innerText = data.output || "No hay cambios detectados (capa limpia).";
+            } catch (e) { document.getElementById('diff-content').innerText = "Error de red."; }
+        }
+
         async function showHistory(id) {
             document.getElementById('historyModalLabel').innerText = `Historial: ${id}`;
             document.getElementById('history-content').innerText = "Cargando historial...";
@@ -760,7 +798,8 @@
                 return sortConfigs.list.direction === 'asc' ? (vA > vB ? 1 : -1) : (vA < vB ? 1 : -1);
             });
             body.innerHTML = sorted.map(c => {
-                const isUp = c.Status.includes('Up');
+                const isUp = c.Status.toLowerCase().includes('up');
+                const isPaused = c.Status.toLowerCase().includes('paused');
                 
                 // Parsing de puertos para visualización rica
                 const portMappings = (c.Ports || '').split(',').map(p => {
@@ -788,14 +827,20 @@
                     <td><i class="bi bi-circle-fill me-2 ${isUp ? 'status-up' : 'status-down'}" style="font-size: 0.7rem;"></i><span class="text-tiny">${c.Status}</span></td>
                     <td>${portsHtml}</td>
                     <td class="text-nowrap">
-                        ${openButtonsHtml}
                         <button class="btn btn-outline-info btn-action" onclick="handleAction('${c.ID}', 'logs', this)" title="Logs"><i class="bi bi-eye"></i></button>
                         <button class="btn btn-outline-warning btn-action" onclick="handleAction('${c.ID}', 'inspect', this)" title="Inspeccionar"><i class="bi bi-search"></i></button>
                         <button class="btn btn-outline-secondary btn-action" onclick="showTop('${c.ID}')" title="Procesos (Top)"><i class="bi bi-list-task"></i></button>
+                        <button class="btn btn-outline-orange btn-action" onclick="showDiff('${c.ID}')" title="Cambios (Diff)"><i class="bi bi-file-earmark-diff"></i></button>
                         <button class="btn btn-outline-primary btn-action" onclick="handleAction('${c.ID}', 'restart', this)" title="Reiniciar"><i class="bi bi-arrow-clockwise"></i></button>
+                        <button class="btn btn-outline-success btn-action" onclick="handleAction('${c.ID}', 'set_restart', this)" title="Auto-reinicio (unless-stopped)"><i class="bi bi-shield-check"></i></button>
+                        ${isUp ? (isPaused 
+                            ? `<button class="btn btn-outline-success btn-action" onclick="handleAction('${c.ID}', 'unpause', this)" title="Reanudar"><i class="bi bi-play-circle"></i></button>`
+                            : `<button class="btn btn-outline-warning btn-action" onclick="handleAction('${c.ID}', 'pause', this)" title="Pausar"><i class="bi bi-pause-circle"></i></button>`
+                        ) : ''}
                         ${isUp ? `<button class="btn btn-outline-danger btn-action" onclick="handleAction('${c.ID}', 'stop', this)" title="Stop"><i class="bi bi-stop-fill"></i></button>` 
                                : `<button class="btn btn-outline-success btn-action" onclick="handleAction('${c.ID}', 'start', this)" title="Start"><i class="bi bi-play-fill"></i></button>`}
                         <button class="btn btn-outline-secondary btn-action" onclick="handleAction('${c.ID}', 'rm', this)" title="Borrar"><i class="bi bi-trash"></i></button>
+                        ${openButtonsHtml}
                     </td>
                 </tr>
             `}).join('');

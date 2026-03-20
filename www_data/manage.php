@@ -9,7 +9,7 @@ $id = $input['id'] ?? null;
 $action = $input['action'] ?? null;
 
 // Validamos parámetros
-if (!$id || !in_array($action, ['start', 'stop', 'restart', 'logs', 'rm', 'rmi', 'inspect', 'history', 'top'])) {
+if (!$id || !in_array($action, ['start', 'stop', 'restart', 'logs', 'rm', 'rmi', 'inspect', 'history', 'top', 'diff', 'pause', 'unpause', 'set_restart'])) {
     http_response_code(400);
     echo json_encode(["error" => "Parámetros inválidos."]);
     exit;
@@ -31,6 +31,9 @@ switch ($action) {
         break;
     case 'rmi':
         $command = sprintf('docker rmi -f %s 2>&1', escapeshellarg($id));
+        break;
+    case 'set_restart':
+        $command = sprintf('docker update --restart=unless-stopped %s 2>&1', escapeshellarg($id));
         break;
     default:
         $command = sprintf('docker %s %s 2>&1', escapeshellarg($action), escapeshellarg($id));
