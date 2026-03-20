@@ -795,7 +795,7 @@
                 `).join('') : '<small class="text-secondary">-</small>';
 
                 const openButtonsHtml = portMappings.map(m => `
-                    <a href="http://${window.location.hostname}:${m.host}" target="_blank" class="btn btn-success btn-action" title="Abrir Puerto ${m.host}">
+                    <a href="http://${window.location.hostname}:${m.host}" target="_blank" class="btn btn-indigo btn-action" title="Abrir Puerto ${m.host}">
                         <i class="bi bi-box-arrow-up-right"></i>
                     </a>
                 `).join('');
@@ -808,7 +808,7 @@
                     <td>${portsHtml}</td>
                     <td class="text-nowrap">
                         <button class="btn btn-info btn-action" onclick="handleAction('${c.ID}', 'logs', this)" title="Logs"><i class="bi bi-eye"></i></button>
-                        <button class="btn btn-warning btn-action" onclick="handleAction('${c.ID}', 'inspect', this)" title="Inspeccionar"><i class="bi bi-search"></i></button>
+                        <button class="btn btn-teal btn-action" onclick="handleAction('${c.ID}', 'inspect', this)" title="Inspeccionar"><i class="bi bi-search"></i></button>
                         <button class="btn btn-secondary btn-action" onclick="showTop('${c.ID}')" title="Procesos (Top)"><i class="bi bi-list-task"></i></button>
                         <button class="btn btn-orange btn-action" onclick="showDiff('${c.ID}')" title="Cambios (Diff)"><i class="bi bi-file-earmark-diff"></i></button>
                         <button class="btn btn-primary btn-action" onclick="handleAction('${c.ID}', 'restart', this)" title="Reiniciar"><i class="bi bi-arrow-clockwise"></i></button>
@@ -819,7 +819,7 @@
                         ) : ''}
                         ${isUp ? `<button class="btn btn-danger btn-action" onclick="handleAction('${c.ID}', 'stop', this)" title="Stop"><i class="bi bi-stop-fill"></i></button>` 
                                : `<button class="btn btn-success btn-action" onclick="handleAction('${c.ID}', 'start', this)" title="Start"><i class="bi bi-play-fill"></i></button>`}
-                        <button class="btn btn-secondary btn-action" onclick="handleAction('${c.ID}', 'rm', this)" title="Borrar"><i class="bi bi-trash"></i></button>
+                        <button class="btn btn-magenta btn-action" onclick="handleAction('${c.ID}', 'rm', this)" title="Borrar"><i class="bi bi-trash"></i></button>
                         ${openButtonsHtml}
                     </td>
                 </tr>
@@ -863,7 +863,7 @@
                         <button class="btn btn-info btn-action" onclick="showHistory('${i.ID}')" title="Historial"><i class="bi bi-clock-history"></i></button>
                         <button class="btn btn-light btn-action" onclick="openGitHub('${i.Repository}', '${i.ID}')" title="GitHub"><i class="bi bi-github"></i></button>
                         <a href="download_image.php?id=${i.ID}&repo=${encodeURIComponent(i.Repository)}&tag=${encodeURIComponent(i.Tag)}" class="btn btn-success btn-action" title="Descargar .tar"><i class="bi bi-download"></i></a>
-                        <button class="btn btn-danger btn-action" onclick="handleAction('${i.ID}', 'rmi', this)" title="Borrar Imagen"><i class="bi bi-trash"></i></button>
+                        <button class="btn btn-magenta btn-action" onclick="handleAction('${i.ID}', 'rmi', this)" title="Borrar Imagen"><i class="bi bi-trash"></i></button>
                     </td>
                 </tr>
             `}).join('');
