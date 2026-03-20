@@ -115,7 +115,7 @@
                     <span class="refresh-indicator"></span>
                     <small class="text-secondary d-block">Actualizando...</small>
                 </div>
-                <a href="logout.php" class="btn btn-outline-danger btn-sm">
+                <a href="logout.php" class="btn btn-danger btn-sm">
                     <i class="bi bi-box-arrow-right"></i> Salir
                 </a>
             </div>
@@ -236,7 +236,7 @@
                                     <th>ID Imagen</th>
                                     <th>En Uso Por</th>
                                     <th onclick="setSort('images', 'Size')">Tamaño <i id="sort-images-Size" class="bi bi-arrow-down-up sort-icon"></i></th>
-                                    <th>Acción</th>
+                                    <th>Acciones</th>
                                 </tr>
                             </thead>
                             <tbody id="images-body"></tbody>
@@ -244,26 +244,6 @@
                     </div>
                 </div>
             </div>
-            
-            <!-- Pestaña de Puertos -->
-            <!-- <div class="tab-pane fade" id="ports-pane" role="tabpanel">
-                <div class="card p-4">
-                    <div class="table-responsive">
-                        <table class="table table-hover align-middle">
-                            <thead>
-                                <tr>
-                                    <th onclick="setSort('ports', 'Names')">Contenedor <i id="sort-ports-Names" class="bi bi-arrow-down-up sort-icon"></i></th>
-                                    <th>Mapeo (Host -> Contenedor)</th>
-                                    <th>Protocolo</th>
-                                    <th>Acción</th>
-                                </tr>
-                            </thead>
-                            <tbody id="ports-body"></tbody>
-                        </table>
-                    </div>
-                </div>
-            </div> -->
-            
             <!-- Pestaña de Terminal -->
             <div class="tab-pane fade" id="terminal-pane" role="tabpanel">
                 <div class="card p-4">
@@ -275,10 +255,10 @@
                             </select>
                         </div>
                         <div class="col-md-8 text-end">
-                            <button class="btn btn-outline-info btn-sm me-2" onclick="disconnectConsole()" id="btn-disconnect" disabled>
+                            <button class="btn btn-info btn-sm me-2" onclick="disconnectConsole()" id="btn-disconnect" disabled>
                                 <i class="bi bi-plug"></i> Desconectar
                             </button>
-                            <button class="btn btn-outline-danger btn-sm" onclick="clearConsole()">
+                            <button class="btn btn-danger btn-sm" onclick="clearConsole()">
                                 <i class="bi bi-eraser"></i> Limpiar
                             </button>
                         </div>
@@ -815,7 +795,7 @@
                 `).join('') : '<small class="text-secondary">-</small>';
 
                 const openButtonsHtml = portMappings.map(m => `
-                    <a href="http://${window.location.hostname}:${m.host}" target="_blank" class="btn btn-outline-success btn-action" title="Abrir Puerto ${m.host}">
+                    <a href="http://${window.location.hostname}:${m.host}" target="_blank" class="btn btn-success btn-action" title="Abrir Puerto ${m.host}">
                         <i class="bi bi-box-arrow-up-right"></i>
                     </a>
                 `).join('');
@@ -827,19 +807,19 @@
                     <td><i class="bi bi-circle-fill me-2 ${isUp ? 'status-up' : 'status-down'}" style="font-size: 0.7rem;"></i><span class="text-tiny">${c.Status}</span></td>
                     <td>${portsHtml}</td>
                     <td class="text-nowrap">
-                        <button class="btn btn-outline-info btn-action" onclick="handleAction('${c.ID}', 'logs', this)" title="Logs"><i class="bi bi-eye"></i></button>
-                        <button class="btn btn-outline-warning btn-action" onclick="handleAction('${c.ID}', 'inspect', this)" title="Inspeccionar"><i class="bi bi-search"></i></button>
-                        <button class="btn btn-outline-secondary btn-action" onclick="showTop('${c.ID}')" title="Procesos (Top)"><i class="bi bi-list-task"></i></button>
-                        <button class="btn btn-outline-orange btn-action" onclick="showDiff('${c.ID}')" title="Cambios (Diff)"><i class="bi bi-file-earmark-diff"></i></button>
-                        <button class="btn btn-outline-primary btn-action" onclick="handleAction('${c.ID}', 'restart', this)" title="Reiniciar"><i class="bi bi-arrow-clockwise"></i></button>
-                        <button class="btn btn-outline-success btn-action" onclick="handleAction('${c.ID}', 'set_restart', this)" title="Auto-reinicio (unless-stopped)"><i class="bi bi-shield-check"></i></button>
+                        <button class="btn btn-info btn-action" onclick="handleAction('${c.ID}', 'logs', this)" title="Logs"><i class="bi bi-eye"></i></button>
+                        <button class="btn btn-warning btn-action" onclick="handleAction('${c.ID}', 'inspect', this)" title="Inspeccionar"><i class="bi bi-search"></i></button>
+                        <button class="btn btn-secondary btn-action" onclick="showTop('${c.ID}')" title="Procesos (Top)"><i class="bi bi-list-task"></i></button>
+                        <button class="btn btn-orange btn-action" onclick="showDiff('${c.ID}')" title="Cambios (Diff)"><i class="bi bi-file-earmark-diff"></i></button>
+                        <button class="btn btn-primary btn-action" onclick="handleAction('${c.ID}', 'restart', this)" title="Reiniciar"><i class="bi bi-arrow-clockwise"></i></button>
+                        <button class="btn btn-success btn-action" onclick="handleAction('${c.ID}', 'set_restart', this)" title="Auto-reinicio (unless-stopped)"><i class="bi bi-shield-check"></i></button>
                         ${isUp ? (isPaused 
-                            ? `<button class="btn btn-outline-success btn-action" onclick="handleAction('${c.ID}', 'unpause', this)" title="Reanudar"><i class="bi bi-play-circle"></i></button>`
-                            : `<button class="btn btn-outline-warning btn-action" onclick="handleAction('${c.ID}', 'pause', this)" title="Pausar"><i class="bi bi-pause-circle"></i></button>`
+                            ? `<button class="btn btn-success btn-action" onclick="handleAction('${c.ID}', 'unpause', this)" title="Reanudar"><i class="bi bi-play-circle"></i></button>`
+                            : `<button class="btn btn-warning btn-action" onclick="handleAction('${c.ID}', 'pause', this)" title="Pausar"><i class="bi bi-pause-circle"></i></button>`
                         ) : ''}
-                        ${isUp ? `<button class="btn btn-outline-danger btn-action" onclick="handleAction('${c.ID}', 'stop', this)" title="Stop"><i class="bi bi-stop-fill"></i></button>` 
-                               : `<button class="btn btn-outline-success btn-action" onclick="handleAction('${c.ID}', 'start', this)" title="Start"><i class="bi bi-play-fill"></i></button>`}
-                        <button class="btn btn-outline-secondary btn-action" onclick="handleAction('${c.ID}', 'rm', this)" title="Borrar"><i class="bi bi-trash"></i></button>
+                        ${isUp ? `<button class="btn btn-danger btn-action" onclick="handleAction('${c.ID}', 'stop', this)" title="Stop"><i class="bi bi-stop-fill"></i></button>` 
+                               : `<button class="btn btn-success btn-action" onclick="handleAction('${c.ID}', 'start', this)" title="Start"><i class="bi bi-play-fill"></i></button>`}
+                        <button class="btn btn-secondary btn-action" onclick="handleAction('${c.ID}', 'rm', this)" title="Borrar"><i class="bi bi-trash"></i></button>
                         ${openButtonsHtml}
                     </td>
                 </tr>
@@ -880,10 +860,10 @@
                     </td>
                     <td><span class="badge bg-dark border border-secondary">${i.Size}</span></td>
                     <td>
-                        <button class="btn btn-outline-info btn-action" onclick="showHistory('${i.ID}')" title="Historial"><i class="bi bi-clock-history"></i></button>
-                        <button class="btn btn-outline-light btn-action" onclick="openGitHub('${i.Repository}', '${i.ID}')" title="GitHub"><i class="bi bi-github"></i></button>
-                        <a href="download_image.php?id=${i.ID}&repo=${encodeURIComponent(i.Repository)}&tag=${encodeURIComponent(i.Tag)}" class="btn btn-outline-success btn-action" title="Descargar .tar"><i class="bi bi-download"></i></a>
-                        <button class="btn btn-outline-danger btn-action" onclick="handleAction('${i.ID}', 'rmi', this)" title="Borrar Imagen"><i class="bi bi-trash"></i></button>
+                        <button class="btn btn-info btn-action" onclick="showHistory('${i.ID}')" title="Historial"><i class="bi bi-clock-history"></i></button>
+                        <button class="btn btn-light btn-action" onclick="openGitHub('${i.Repository}', '${i.ID}')" title="GitHub"><i class="bi bi-github"></i></button>
+                        <a href="download_image.php?id=${i.ID}&repo=${encodeURIComponent(i.Repository)}&tag=${encodeURIComponent(i.Tag)}" class="btn btn-success btn-action" title="Descargar .tar"><i class="bi bi-download"></i></a>
+                        <button class="btn btn-danger btn-action" onclick="handleAction('${i.ID}', 'rmi', this)" title="Borrar Imagen"><i class="bi bi-trash"></i></button>
                     </td>
                 </tr>
             `}).join('');
@@ -918,7 +898,7 @@
                         <td><code class="text-secondary">${m.container}</code></td>
                         <td><span class="badge bg-dark border border-secondary">${m.proto.toUpperCase()}</span></td>
                         <td>
-                            <a href="http://${window.location.hostname}:${m.host}" target="_blank" class="btn btn-outline-success btn-action">
+                            <a href="http://${window.location.hostname}:${m.host}" target="_blank" class="btn btn-success btn-action">
                                 <i class="bi bi-box-arrow-up-right"></i> Abrir
                             </a>
                         </td>
