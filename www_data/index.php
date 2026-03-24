@@ -28,7 +28,7 @@
         .status-up { color: #10b981; }
         .status-down { color: #ef4444; }
         .btn-action { padding: 0.35rem 0.6rem; font-size: 0.9rem; border-radius: 0.5rem; margin-right: 4px; }
-        
+
         /* Ajuste global del tamaño de letra de las tablas */
         .table td, .table th { font-size: 1.08rem; vertical-align: middle; }
         .table .text-tiny, .table .small, .table code { font-size: 0.9rem !important; }
@@ -38,17 +38,17 @@
         .modal-content { background-color: #1e293b; border: 1px solid #334155; }
         .text-tiny { font-size: 0.75rem; }
         .badge-container { display: flex; flex-wrap: wrap; gap: 4px; }
-        
+
         /* Terminal Styles - Dracula Theme */
-        .terminal-window { 
-            background-color: #282a36; 
-            color: #f8f8f2; 
-            font-family: 'Consolas', 'Monaco', 'Courier New', monospace; 
-            padding: 15px; 
-            border-radius: 8px; 
-            height: 500px; 
-            overflow-y: auto; 
-            display: flex; 
+        .terminal-window {
+            background-color: #282a36;
+            color: #f8f8f2;
+            font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+            padding: 15px;
+            border-radius: 8px;
+            height: 500px;
+            overflow-y: auto;
+            display: flex;
             flex-direction: column;
             border: 1px solid #44475a;
             box-shadow: 0 4px 6px rgba(0,0,0,0.3);
@@ -407,18 +407,45 @@
 
         function updateConsoleSelect() {
             const select = document.getElementById('console-select');
-            if (select.options.length <= 1 && listData.length > 0) {
-                listData.forEach(c => {
-                    if (c.Status.includes('Up')) {
-                        const opt = document.createElement('option');
-                        opt.value = c.Names; 
-                        opt.innerText = `${c.Names}`;
-                        select.appendChild(opt);
-                    }
-                });
+            if (!select) return;
+
+            // Si listData no es array o está vacío, no hacemos nada todavía
+            if (!Array.isArray(listData) || listData.length === 0) return;
+
+            const currentVal = select.value;
+
+            // Obtenemos nombres de contenedores que están activos
+            const runningNames = listData
+                .filter(c => c && c.Status && c.Status.toLowerCase().includes('up'))
+                .map(c => {
+                    let name = c.Names || "";
+                    // Limpiamos la barra inicial si existe (/container -> container)
+                    return name.startsWith('/') ? name.substring(1) : name;
+                })
+                .filter(name => !!name);
+
+            // Verificamos si la lista realmente cambió
+            const signature = [...runningNames].sort().join('|');
+            if (select.getAttribute('data-signature') === signature) return;
+            select.setAttribute('data-signature', signature);
+
+            console.log("Actualizando selector de terminal con:", runningNames);
+
+            // Reconstruimos de forma limpia
+            select.innerHTML = '<option value="">Seleccionar Contenedor...</option>';
+
+            runningNames.forEach(name => {
+                const opt = document.createElement('option');
+                opt.value = name;
+                opt.innerText = name;
+                if (name === currentVal) opt.selected = true;
+                select.appendChild(opt);
+            });
+
+            if (currentContainer && !runningNames.includes(currentContainer)) {
+                disconnectConsole();
             }
         }
-
         document.getElementById('console-select').addEventListener('change', function() {
             connectToContainer(this.value);
         });
@@ -428,7 +455,7 @@
             const input = document.getElementById('cmd-input');
             const output = document.getElementById('terminal-output');
             const btnDisconnect = document.getElementById('btn-disconnect');
-            
+
             if (currentContainer) {
                 input.disabled = false;
                 btnDisconnect.disabled = false;
@@ -448,7 +475,7 @@
             const output = document.getElementById('terminal-output');
             const select = document.getElementById('console-select');
             const btnDisconnect = document.getElementById('btn-disconnect');
-            
+
             input.disabled = true;
             input.value = '';
             btnDisconnect.disabled = true;
@@ -461,7 +488,7 @@
             if (e.key === 'Enter') {
                 const cmd = this.value.trim();
                 if (!cmd) return;
-                
+
                 this.value = '';
                 consoleHistory.push(cmd);
                 historyIndex = consoleHistory.length;
@@ -481,14 +508,21 @@
                 try {
                     const res = await fetch('console.php', {
                         method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-Requested-With': 'XMLHttpRequest'
+                        },
                         body: JSON.stringify({
                             id: currentContainer,
                             command: cmd,
                             workdir: currentWorkdir
                         })
                     });
+
+                    if (res.status === 401) { window.location.reload(); return; }
+
                     const data = await res.json();
-                    
+
                     if (data.newWorkdir) {
                         currentWorkdir = data.newWorkdir.trim();
                         updatePrompt();
@@ -567,7 +601,7 @@
         async function handleAction(id, action, btn) {
             const confirmMsg = action === 'rm' ? '¿Borrar contenedor?' : (action === 'rmi' ? '¿Borrar imagen?' : null);
             if (confirmMsg && !confirm(confirmMsg)) return;
-            
+
             if (action === 'logs') { showLogs(id); return; }
             if (action === 'inspect') { showInspect(id); return; }
 
@@ -679,11 +713,11 @@
                 const data = await res.json();
                 const inspect = JSON.parse(data.output);
                 const labels = inspect[0]?.Config?.Labels || {};
-                
-                let url = labels['org.opencontainers.image.source'] || 
-                          labels['org.opencontainers.image.url'] || 
+
+                let url = labels['org.opencontainers.image.source'] ||
+                          labels['org.opencontainers.image.url'] ||
                           labels['org.label-schema.vcs-url'];
-                
+
                 if (url) {
                     window.open(url, '_blank');
                 } else {
@@ -720,7 +754,7 @@
             return isNaN(cleanVal) ? cleanVal : parseFloat(cleanVal);
         }
 
-        function renderAll() { renderStats(); renderList(); renderImages(); renderPorts(); }
+        function renderAll() { renderStats(); renderList(); renderImages(); }
 
         function renderStats() {
             const body = document.getElementById('stats-body');
@@ -784,7 +818,7 @@
             body.innerHTML = sorted.map(c => {
                 const isUp = c.Status.toLowerCase().includes('up');
                 const isPaused = c.Status.toLowerCase().includes('paused');
-                
+
                 // Parsing de puertos para visualización rica
                 const portMappings = (c.Ports || '').split(',').map(p => {
                     const part = p.trim();
@@ -817,11 +851,11 @@
                         <button class="btn btn-orange btn-action" onclick="showDiff('${c.ID}')" title="Cambios (Diff)"><i class="bi bi-file-earmark-diff"></i></button>
                         <button class="btn btn-primary btn-action" onclick="handleAction('${c.ID}', 'restart', this)" title="Reiniciar"><i class="bi bi-arrow-clockwise"></i></button>
                         <button class="btn btn-success btn-action" onclick="handleAction('${c.ID}', 'set_restart', this)" title="Auto-reinicio (unless-stopped)"><i class="bi bi-shield-check"></i></button>
-                        ${isUp ? (isPaused 
+                        ${isUp ? (isPaused
                             ? `<button class="btn btn-success btn-action" onclick="handleAction('${c.ID}', 'unpause', this)" title="Reanudar"><i class="bi bi-play-circle"></i></button>`
                             : `<button class="btn btn-warning btn-action" onclick="handleAction('${c.ID}', 'pause', this)" title="Pausar"><i class="bi bi-pause-circle"></i></button>`
                         ) : ''}
-                        ${isUp ? `<button class="btn btn-danger btn-action" onclick="handleAction('${c.ID}', 'stop', this)" title="Stop"><i class="bi bi-stop-fill"></i></button>` 
+                        ${isUp ? `<button class="btn btn-danger btn-action" onclick="handleAction('${c.ID}', 'stop', this)" title="Stop"><i class="bi bi-stop-fill"></i></button>`
                                : `<button class="btn btn-success btn-action" onclick="handleAction('${c.ID}', 'start', this)" title="Start"><i class="bi bi-play-fill"></i></button>`}
                         <button class="btn btn-magenta btn-action" onclick="handleAction('${c.ID}', 'rm', this)" title="Borrar"><i class="bi bi-trash"></i></button>
                         ${openButtonsHtml}
@@ -837,7 +871,7 @@
                 const vB = parseValue(b[sortConfigs.images.key]);
                 return sortConfigs.images.direction === 'asc' ? (vA > vB ? 1 : -1) : (vA < vB ? 1 : -1);
             });
-            
+
             body.innerHTML = sorted.map(i => {
                 const fullRepoTag = i.Repository + ":" + i.Tag;
                 const usedBy = listData.filter(c => {
@@ -856,7 +890,7 @@
                     <td><code class="text-secondary small">${i.ID}</code></td>
                     <td>
                         <div class="badge-container">
-                            ${usedBy.length > 0 
+                            ${usedBy.length > 0
                                 ? usedBy.map(name => `<span class="badge bg-info text-dark text-tiny">${name}</span>`).join('')
                                 : '<small class="text-secondary text-tiny italic">Ninguno</small>'
                             }
@@ -916,25 +950,25 @@
             try {
                 const res = await fetch('info.php');
                 const data = await res.json();
-                
+
                 // CPU & OS
                 document.getElementById('sum-cpu-usage').innerText = `${data.host_load['1m'].toFixed(2)} (Load)`;
                 document.getElementById('sum-os-info').innerText = `${data.os} (${data.cpus} CPUs)`;
-                
+
                 // RAM
                 const usedGb = (data.host_mem.used / (1024**3)).toFixed(2);
                 const totalGb = (data.host_mem.total / (1024**3)).toFixed(2);
                 document.getElementById('sum-mem-usage').innerText = `${usedGb} GB`;
                 document.getElementById('sum-mem-total').innerText = `Total: ${totalGb} GB (${data.host_mem.percent}%)`;
-                
+
                 // Contenedores
                 document.getElementById('sum-cont-running').innerText = `${data.containers.running} Activos`;
                 document.getElementById('sum-cont-total').innerText = `Total: ${data.containers.total} (${data.containers.stopped} off)`;
-                
+
                 // Imágenes
                 document.getElementById('sum-img-count').innerText = `${data.images.count} Imágenes`;
                 document.getElementById('sum-img-size').innerText = `Tamaño: ${data.images.size}`;
-                
+
             } catch (e) { console.error("Error fetching system info:", e); }
         }
 
