@@ -460,7 +460,8 @@
                 input.disabled = false;
                 btnDisconnect.disabled = false;
                 input.focus();
-                output.innerHTML = `<span class="terminal-msg-success">Sesión iniciada en contenedor: ${currentContainer}</span>\n`;
+                const connectCmd = `docker exec -it ${currentContainer} sh`;
+                output.innerHTML = `<span class="terminal-msg-success">Sesión iniciada en contenedor: ${currentContainer}</span> <code class="text-secondary ms-2">(${connectCmd})</code>\n`;
                 currentWorkdir = '/';
                 updatePrompt();
             } else {
