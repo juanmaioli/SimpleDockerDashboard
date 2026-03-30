@@ -421,11 +421,19 @@
 
         function updateComposeSelect() {
             const s = document.getElementById('compose-select');
-            const sig = listData.map(c=>c.Names).sort().join('|');
+            const cleanNames = listData.map(c => c.Names.startsWith('/') ? c.Names.substring(1) : c.Names);
+            const sig = cleanNames.sort().join('|');
             if (s.dataset.signature === sig) return;
             s.dataset.signature = sig;
             const val = s.value;
-            s.innerHTML = '<option value="">Seleccionar Proyecto...</option>' + listData.map(c => `<option value="${c.ID}" ${c.ID===val?'selected':''}>${c.Names}</option>`).join('');
+            
+            const sorted = listData.map(c => ({
+                id: c.ID,
+                name: c.Names.startsWith('/') ? c.Names.substring(1) : c.Names
+            })).sort((a, b) => a.name.localeCompare(b.name));
+
+            s.innerHTML = '<option value="">Seleccionar Proyecto...</option>' + 
+                sorted.map(c => `<option value="${c.id}" ${c.id===val?'selected':''}>${c.name}</option>`).join('');
         }
 
         async function loadCompose(id) {
@@ -439,8 +447,11 @@
                 document.getElementById('compose-path').innerText = `Ruta: ${data.path}`;
                 document.getElementById('compose-editor').value = data.content;
                 document.getElementById('compose-editor').disabled = false;
-                ['btn-compose-save','btn-compose-up','btn-compose-down'].forEach(id=>document.getElementById(id).disabled=false);
-            } catch(e){alert("Error al cargar");}
+                ['btn-compose-save','btn-compose-up','btn-compose-down'].forEach(btnId=>{
+                    const el = document.getElementById(btnId);
+                    if(el) el.disabled = false;
+                });
+            } catch(e){ console.error(e); alert("Error al cargar"); }
         }
 
         function resetComposeEditor() {
@@ -448,7 +459,10 @@
             document.getElementById('compose-path').innerText = "Ruta: -";
             document.getElementById('compose-editor').value = "";
             document.getElementById('compose-editor').disabled = true;
-            ['btn-compose-save','btn-compose-up','btn-compose-down'].forEach(id=>document.getElementById(id).disabled=true);
+            ['btn-compose-save','btn-compose-up','btn-compose-down'].forEach(btnId=>{
+                const el = document.getElementById(btnId);
+                if(el) el.disabled = true;
+            });
         }
 
         async function saveCompose() {
