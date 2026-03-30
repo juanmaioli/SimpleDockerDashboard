@@ -9,7 +9,7 @@ $id = $input['id'] ?? null;
 $action = $input['action'] ?? null;
 
 // Validamos parámetros
-if (!$id || !in_array($action, ['start', 'stop', 'restart', 'logs', 'rm', 'rmi', 'inspect', 'history', 'top', 'diff', 'pause', 'unpause', 'set_restart'])) {
+if (!$id || !in_array($action, ['start', 'stop', 'restart', 'logs', 'rm', 'rmi', 'inspect', 'history', 'top', 'diff', 'pause', 'unpause', 'set_restart', 'compose_up', 'compose_down'])) {
     http_response_code(400);
     echo json_encode(["error" => "Parámetros inválidos."]);
     exit;
@@ -34,6 +34,14 @@ switch ($action) {
         break;
     case 'set_restart':
         $command = sprintf('docker update --restart=unless-stopped %s 2>&1', escapeshellarg($id));
+        break;
+    case 'compose_up':
+        $file = trim(shell_exec(sprintf('docker inspect %s --format "{{index .Config.Labels \"com.docker.compose.project.config_files\"}}"', escapeshellarg($id))));
+        $command = sprintf('docker compose %s up -d 2>&1', escapeshellarg($file));
+        break;
+    case 'compose_down':
+        $file = trim(shell_exec(sprintf('docker inspect %s --format "{{index .Config.Labels \"com.docker.compose.project.config_files\"}}"', escapeshellarg($id))));
+        $command = sprintf('docker compose  %s down 2>&1', escapeshellarg($file));
         break;
     default:
         $command = sprintf('docker %s %s 2>&1', escapeshellarg($action), escapeshellarg($id));

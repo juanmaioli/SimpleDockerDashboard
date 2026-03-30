@@ -9,6 +9,7 @@ services:
       - ./www_data:/var/www/html
       - ./php_data/php.ini:/usr/local/etc/php/php.ini
       - /var/run/docker.sock:/var/run/docker.sock
+      - /home/juan/VirtualMachines/Docker:/home/juan/VirtualMachines/Docker
     environment:
       - DASHBOARD_USER=${DASHBOARD_USER}
       - DASHBOARD_PASS=${DASHBOARD_PASS}

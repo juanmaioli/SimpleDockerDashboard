@@ -82,32 +82,11 @@
             grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
             gap: 1.5rem;
         }
-        .summary-item {
-            display: flex;
-            flex-direction: column;
-        }
-        .summary-label {
-            color: #94a3b8;
-            font-size: 0.8rem;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-            margin-bottom: 0.5rem;
-        }
-        .summary-value {
-            font-size: 1.25rem;
-            font-weight: 700;
-            color: #f8f8f2;
-        }
-        .summary-sub {
-            font-size: 0.75rem;
-            color: #64748b;
-            margin-top: 0.25rem;
-        }
-        .summary-icon {
-            font-size: 3rem;
-            margin-bottom: 0.5rem;
-            color: #0ea5e9;
-        }
+        .summary-item { display: flex; flex-direction: column; }
+        .summary-label { color: #94a3b8; font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.5rem; }
+        .summary-value { font-size: 1.25rem; font-weight: 700; color: #f8f8f2; }
+        .summary-sub { font-size: 0.75rem; color: #64748b; margin-top: 0.25rem; }
+        .summary-icon { font-size: 3rem; margin-bottom: 0.5rem; color: #0ea5e9; }
     </style>
 </head>
 <body>
@@ -168,6 +147,11 @@
             <li class="nav-item" role="presentation">
                 <button class="nav-link" id="images-tab" data-bs-toggle="pill" data-bs-target="#images-pane" type="button" role="tab">
                     <i class="bi bi-layers me-2"></i> Imágenes
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="compose-tab" data-bs-toggle="pill" data-bs-target="#compose-pane" type="button" role="tab">
+                    <i class="bi bi-file-earmark-code me-2"></i> Compose
                 </button>
             </li>
             <li class="nav-item" role="presentation">
@@ -248,6 +232,35 @@
                     </div>
                 </div>
             </div>
+
+            <!-- Pestaña de Compose -->
+            <div class="tab-pane fade" id="compose-pane" role="tabpanel">
+                <div class="card p-4">
+                    <div class="row mb-3 align-items-center">
+                        <div class="col-md-4">
+                            <select class="form-select bg-dark text-light border-secondary" id="compose-select" onchange="loadCompose(this.value)">
+                                <option value="" selected>Seleccionar Proyecto...</option>
+                            </select>
+                        </div>
+                        <div class="col-md-8 text-end">
+                            <button class="btn btn-primary btn-sm me-2" id="btn-compose-save" onclick="saveCompose()" disabled>
+                                <i class="bi bi-save"></i> Guardar Cambios
+                            </button>
+                            <!-- <button class="btn btn-success btn-sm me-2" id="btn-compose-up" onclick="handleComposeAction('compose_up')" disabled>
+                                <i class="bi bi-arrow-up-circle"></i> Compose Up
+                            </button>
+                            <button class="btn btn-danger btn-sm" id="btn-compose-down" onclick="handleComposeAction('compose_down')" disabled>
+                                <i class="bi bi-arrow-down-circle"></i> Compose Down
+                            </button> -->
+                        </div>
+                    </div>
+                    <div class="mb-2">
+                        <small class="text-secondary" id="compose-path">Ruta: -</small>
+                    </div>
+                    <textarea id="compose-editor" style="width: 100%; height: 500px; background-color: #1e1e1e; color: #d4d4d4; font-family: 'Consolas', monospace; padding: 15px; border-radius: 8px; border: 1px solid #334155; outline: none; font-size: 0.95rem;" spellcheck="false" disabled></textarea>
+                </div>
+            </div>
+
             <!-- Pestaña de Terminal -->
             <div class="tab-pane fade" id="terminal-pane" role="tabpanel">
                 <div class="card p-4">
@@ -255,7 +268,6 @@
                         <div class="col-md-4">
                             <select class="form-select bg-dark text-light border-secondary" id="console-select">
                                 <option value="" selected>Seleccionar Contenedor...</option>
-                                <!-- Se llena dinámicamente -->
                             </select>
                         </div>
                         <div class="col-md-8 text-end">
@@ -281,708 +293,264 @@
         </div>
     </div>
 
-    <!-- Modal para Logs -->
-    <div class="modal fade" id="logsModal" tabindex="-1">
-        <div class="modal-dialog modal-xl">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="logsModalLabel"><i class="bi bi-terminal me-2"></i> Logs del Contenedor</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                </div>
-                <div class="modal-body">
-                    <div id="logs-content">Cargando logs...</div>
-                </div>
-            </div>
-        </div>
-    </div>
+    <!-- Modales -->
+    <div class="modal fade" id="logsModal" tabindex="-1"><div class="modal-dialog modal-xl"><div class="modal-content"><div class="modal-header"><h5 class="modal-title" id="logsModalLabel"><i class="bi bi-terminal me-2"></i> Logs</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body"><div id="logs-content"></div></div></div></div></div>
+    <div class="modal fade" id="inspectModal" tabindex="-1"><div class="modal-dialog modal-xl"><div class="modal-content"><div class="modal-header"><h5 class="modal-title" id="inspectModalLabel"><i class="bi bi-search me-2"></i> Inspección</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body"><div id="inspect-content"></div></div></div></div></div>
+    <div class="modal fade" id="topModal" tabindex="-1"><div class="modal-dialog modal-xl"><div class="modal-content"><div class="modal-header"><h5 class="modal-title" id="topModalLabel"><i class="bi bi-list-task me-2"></i> Procesos</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body"><div id="top-content" style="background-color:#000; color:#50fa7b; font-family:monospace; padding:15px; border-radius:8px; white-space:pre; overflow-x:auto;"></div></div></div></div></div>
+    <div class="modal fade" id="diffModal" tabindex="-1"><div class="modal-dialog modal-xl"><div class="modal-content"><div class="modal-header"><h5 class="modal-title" id="diffModalLabel"><i class="bi bi-file-earmark-diff me-2"></i> Cambios FS</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body"><div id="diff-content" style="background-color:#000; color:#ffb86c; font-family:monospace; padding:15px; border-radius:8px; white-space:pre; overflow-x:auto;"></div></div></div></div></div>
+    <div class="modal fade" id="historyModal" tabindex="-1"><div class="modal-dialog modal-xl"><div class="modal-content"><div class="modal-header"><h5 class="modal-title" id="historyModalLabel"><i class="bi bi-clock-history me-2"></i> Historial</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body"><div id="history-content" style="background-color:#000; color:#d1d5db; font-family:monospace; padding:15px; border-radius:8px; white-space:pre; overflow-x:auto;"></div></div></div></div></div>
 
-    <!-- Modal para Inspección -->
-    <div class="modal fade" id="inspectModal" tabindex="-1">
-        <div class="modal-dialog modal-xl">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="inspectModalLabel"><i class="bi bi-search me-2"></i> Inspección del Contenedor</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                </div>
-                <div class="modal-body">
-                    <div id="inspect-content">Cargando datos técnicos...</div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Modal para Procesos (Top) -->
-    <div class="modal fade" id="topModal" tabindex="-1">
-        <div class="modal-dialog modal-xl">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="topModalLabel"><i class="bi bi-list-task me-2"></i> Procesos del Contenedor (Top)</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                </div>
-                <div class="modal-body">
-                    <div id="top-content" style="background-color: #000; color: #50fa7b; font-family: 'Courier New', Courier, monospace; padding: 15px; border-radius: 8px; max-height: 500px; overflow-y: auto; white-space: pre; font-size: 0.85rem;">Cargando procesos...</div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Modal para Cambios (Diff) -->
-    <div class="modal fade" id="diffModal" tabindex="-1">
-        <div class="modal-dialog modal-xl">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="diffModalLabel"><i class="bi bi-file-earmark-diff me-2"></i> Cambios en el Sistema de Archivos (Diff)</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                </div>
-                <div class="modal-body">
-                    <div id="diff-content" style="background-color: #000; color: #ffb86c; font-family: 'Courier New', Courier, monospace; padding: 15px; border-radius: 8px; max-height: 500px; overflow-y: auto; white-space: pre; font-size: 0.85rem;">Cargando cambios...</div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Modal para Historial -->
-    <div class="modal fade" id="historyModal" tabindex="-1">
-        <div class="modal-dialog modal-xl">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="historyModalLabel"><i class="bi bi-clock-history me-2"></i> Historial de la Imagen</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                </div>
-                <div class="modal-body">
-                    <div id="history-content" style="background-color: #000; color: #d1d5db; font-family: 'Courier New', Courier, monospace; padding: 15px; border-radius: 8px; max-height: 500px; overflow-y: auto; white-space: pre; font-size: 0.85rem;">Cargando historial...</div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Bootstrap Bundle with Popper -->
     <script src="assets/js/bootstrap.bundle.min.js"></script>
-
     <script>
-        let statsData = [];
-        let listData = [];
-        let imagesData = [];
+        let statsData = [], listData = [], imagesData = [];
         let sortConfigs = {
             stats: { key: 'Name', direction: 'asc' },
             list: { key: 'Names', direction: 'asc' },
-            images: { key: 'Repository', direction: 'asc' },
-            ports: { key: 'Names', direction: 'asc' }
+            images: { key: 'Repository', direction: 'asc' }
         };
         const logsModal = new bootstrap.Modal(document.getElementById('logsModal'));
         const inspectModal = new bootstrap.Modal(document.getElementById('inspectModal'));
         const topModal = new bootstrap.Modal(document.getElementById('topModal'));
+        const diffModal = new bootstrap.Modal(document.getElementById('diffModal'));
         const historyModal = new bootstrap.Modal(document.getElementById('historyModal'));
 
-        // Terminal Vars
-        let consoleHistory = [];
-        let historyIndex = -1;
-        let currentWorkdir = '/';
-        let currentContainer = null;
+        let consoleHistory = [], historyIndex = -1, currentWorkdir = '/', currentContainer = null;
+        let currentComposePath = null, currentComposeContainerId = null;
 
         async function updateData() {
             try {
                 await Promise.all([fetchStats(), fetchList(), fetchImages(), fetchInfo()]);
                 renderAll();
                 updateConsoleSelect();
-            } catch (e) {
-                console.error("Error en actualización:", e);
-            } finally {
-                // Programamos la siguiente actualización solo cuando esta termine
-                setTimeout(updateData, 3000);
-            }
+                updateComposeSelect();
+            } catch (e) { console.error(e); }
+            finally { setTimeout(updateData, 3000); }
         }
 
-        async function fetchStats() {
-            try { const res = await fetch('stats.php'); statsData = await res.json(); } catch (e) { console.error(e); }
-        }
-
-        async function fetchList() {
-            try { const res = await fetch('ps.php'); listData = await res.json(); } catch (e) { console.error(e); }
-        }
-
-        async function fetchImages() {
-            try { const res = await fetch('images.php'); imagesData = await res.json(); } catch (e) { console.error(e); }
-        }
-
-        function updateConsoleSelect() {
-            const select = document.getElementById('console-select');
-            if (!select) return;
-
-            // Si listData no es array o está vacío, no hacemos nada todavía
-            if (!Array.isArray(listData) || listData.length === 0) return;
-
-            const currentVal = select.value;
-
-            // Obtenemos nombres de contenedores que están activos
-            const runningNames = listData
-                .filter(c => c && c.Status && c.Status.toLowerCase().includes('up'))
-                .map(c => {
-                    let name = c.Names || "";
-                    // Limpiamos la barra inicial si existe (/container -> container)
-                    return name.startsWith('/') ? name.substring(1) : name;
-                })
-                .filter(name => !!name);
-
-            // Verificamos si la lista realmente cambió
-            const signature = [...runningNames].sort().join('|');
-            if (select.getAttribute('data-signature') === signature) return;
-            select.setAttribute('data-signature', signature);
-
-            console.log("Actualizando selector de terminal con:", runningNames);
-
-            // Reconstruimos de forma limpia
-            select.innerHTML = '<option value="">Seleccionar Contenedor...</option>';
-
-            runningNames.forEach(name => {
-                const opt = document.createElement('option');
-                opt.value = name;
-                opt.innerText = name;
-                if (name === currentVal) opt.selected = true;
-                select.appendChild(opt);
-            });
-
-            if (currentContainer && !runningNames.includes(currentContainer)) {
-                disconnectConsole();
-            }
-        }
-        document.getElementById('console-select').addEventListener('change', function() {
-            connectToContainer(this.value);
-        });
-
-        function connectToContainer(name) {
-            currentContainer = name;
-            const input = document.getElementById('cmd-input');
-            const output = document.getElementById('terminal-output');
-            const btnDisconnect = document.getElementById('btn-disconnect');
-
-            if (currentContainer) {
-                input.disabled = false;
-                btnDisconnect.disabled = false;
-                input.focus();
-                const connectCmd = `docker exec -it ${currentContainer} sh`;
-                output.innerHTML = `<span class="terminal-msg-success">Sesión iniciada en contenedor: ${currentContainer}</span> <code class="text-secondary ms-2">(${connectCmd})</code>\n`;
-                currentWorkdir = '/';
-                updatePrompt();
-            } else {
-                disconnectConsole();
-            }
-        }
-
-        function disconnectConsole() {
-            currentContainer = null;
-            currentWorkdir = '/';
-            const input = document.getElementById('cmd-input');
-            const output = document.getElementById('terminal-output');
-            const select = document.getElementById('console-select');
-            const btnDisconnect = document.getElementById('btn-disconnect');
-
-            input.disabled = true;
-            input.value = '';
-            btnDisconnect.disabled = true;
-            select.value = "";
-            output.innerHTML += '<span class="terminal-msg-warning">Conexión cerrada.</span>\n';
-            document.getElementById('prompt-label').innerText = "root@docker:/#";
-        }
-
-        document.getElementById('cmd-input').addEventListener('keydown', async function(e) {
-            if (e.key === 'Enter') {
-                const cmd = this.value.trim();
-                if (!cmd) return;
-
-                this.value = '';
-                consoleHistory.push(cmd);
-                historyIndex = consoleHistory.length;
-
-                appendOutput(`<span class="prompt">${document.getElementById('prompt-label').innerText}</span> <span style="color:#50fa7b">${cmd}</span>`);
-
-                if (cmd === 'clear') {
-                    document.getElementById('terminal-output').innerHTML = '';
-                    return;
-                }
-
-                if (cmd === 'exit') {
-                    disconnectConsole();
-                    return;
-                }
-
-                try {
-                    const res = await fetch('console.php', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'X-Requested-With': 'XMLHttpRequest'
-                        },
-                        body: JSON.stringify({
-                            id: currentContainer,
-                            command: cmd,
-                            workdir: currentWorkdir
-                        })
-                    });
-
-                    if (res.status === 401) { window.location.reload(); return; }
-
-                    const data = await res.json();
-
-                    if (data.newWorkdir) {
-                        currentWorkdir = data.newWorkdir.trim();
-                        updatePrompt();
-                    } else if (data.output) {
-                        appendOutput(data.output);
-                    }
-                } catch (err) {
-                    appendOutput(`<span class="terminal-msg-danger">Error de red: ${err.message}</span>`);
-                }
-            } else if (e.key === 'ArrowUp') {
-                e.preventDefault();
-                if (historyIndex > 0) {
-                    historyIndex--;
-                    this.value = consoleHistory[historyIndex];
-                }
-            } else if (e.key === 'ArrowDown') {
-                e.preventDefault();
-                if (historyIndex < consoleHistory.length - 1) {
-                    historyIndex++;
-                    this.value = consoleHistory[historyIndex];
-                } else {
-                    historyIndex = consoleHistory.length;
-                    this.value = '';
-                }
-            }
-        });
-
-        function appendOutput(text) {
-            const out = document.getElementById('terminal-output');
-            out.innerHTML += text + '\n';
-            document.getElementById('terminal-window').scrollTop = document.getElementById('terminal-window').scrollHeight;
-        }
-
-        function updatePrompt() {
-            document.getElementById('prompt-label').innerText = `root@${currentContainer}:${currentWorkdir}#`;
-        }
-
-        function clearConsole() {
-            document.getElementById('terminal-output').innerHTML = '';
-            document.getElementById('cmd-input').focus();
-        }
-
-        async function handleImport(input) {
-            const file = input.files[0];
-            if (!file) return;
-
-            const btn = document.getElementById('btn-import');
-            const originalHtml = btn.innerHTML;
-            btn.disabled = true;
-            btn.innerHTML = `<span class="spinner-border spinner-border-sm me-1"></span> Importando...`;
-
-            const formData = new FormData();
-            formData.append('image_tar', file);
-
+        async function fetchStats() { try { const res = await fetch('stats.php', {headers:{'X-Requested-With':'XMLHttpRequest'}}); if(res.status===401) window.location.reload(); statsData = await res.json(); } catch(e){} }
+        async function fetchList() { try { const res = await fetch('ps.php', {headers:{'X-Requested-With':'XMLHttpRequest'}}); if(res.status===401) window.location.reload(); listData = await res.json(); } catch(e){} }
+        async function fetchImages() { try { const res = await fetch('images.php', {headers:{'X-Requested-With':'XMLHttpRequest'}}); if(res.status===401) window.location.reload(); imagesData = await res.json(); } catch(e){} }
+        async function fetchInfo() {
             try {
-                const res = await fetch('upload_image.php', {
-                    method: 'POST',
-                    body: formData
-                });
-                const data = await res.json();
-                if (data.success) {
-                    alert("Éxito: " + data.output);
-                    await updateData();
-                } else {
-                    alert("Error: " + data.error);
-                }
-            } catch (e) {
-                alert("Error de red al importar imagen.");
-            } finally {
-                btn.disabled = false;
-                btn.innerHTML = originalHtml;
-                input.value = ''; // Limpiamos el input
-            }
-        }
-
-        async function handleAction(id, action, btn) {
-            const confirmMsg = action === 'rm' ? '¿Borrar contenedor?' : (action === 'rmi' ? '¿Borrar imagen?' : null);
-            if (confirmMsg && !confirm(confirmMsg)) return;
-
-            if (action === 'logs') { showLogs(id); return; }
-            if (action === 'inspect') { showInspect(id); return; }
-
-            const originalHtml = btn.innerHTML;
-            btn.disabled = true;
-            btn.innerHTML = `<span class="spinner-border spinner-border-sm"></span>`;
-
-            try {
-                const res = await fetch('manage.php', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ id, action })
-                });
-                const data = await res.json();
-                if (data.success) await updateData();
-                else alert("Error: " + (data.error || "Desconocido"));
-            } catch (e) { alert("Error de comunicación con el servidor."); }
-            finally { btn.disabled = false; btn.innerHTML = originalHtml; }
-        }
-
-        async function showLogs(id) {
-            document.getElementById('logsModalLabel').innerText = `Logs: ${id}`;
-            document.getElementById('logs-content').innerText = "Cargando...";
-            logsModal.show();
-            try {
-                const res = await fetch('manage.php', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ id, action: 'logs' })
-                });
-                const data = await res.json();
-                document.getElementById('logs-content').innerText = data.output || "Sin logs.";
-            } catch (e) { document.getElementById('logs-content').innerText = "Error."; }
-        }
-
-        async function showInspect(id) {
-            document.getElementById('inspectModalLabel').innerText = `Inspección: ${id}`;
-            document.getElementById('inspect-content').innerText = "Cargando JSON...";
-            inspectModal.show();
-            try {
-                const res = await fetch('manage.php', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ id, action: 'inspect' })
-                });
-                const data = await res.json();
-                // Formateamos el JSON para que sea legible
-                try {
-                    const obj = JSON.parse(data.output);
-                    document.getElementById('inspect-content').innerText = JSON.stringify(obj, null, 2);
-                } catch(e) {
-                    document.getElementById('inspect-content').innerText = data.output;
-                }
-            } catch (e) { document.getElementById('inspect-content').innerText = "Error."; }
-        }
-
-        async function showTop(id) {
-            document.getElementById('topModalLabel').innerText = `Procesos: ${id}`;
-            document.getElementById('top-content').innerText = "Cargando procesos...";
-            topModal.show();
-            try {
-                const res = await fetch('manage.php', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ id, action: 'top' })
-                });
-                const data = await res.json();
-                document.getElementById('top-content').innerText = data.output || "No se pudieron obtener los procesos.";
-            } catch (e) { document.getElementById('top-content').innerText = "Error de red."; }
-        }
-
-        async function showDiff(id) {
-            document.getElementById('diffModalLabel').innerText = `Cambios (FS): ${id}`;
-            document.getElementById('diff-content').innerText = "Cargando cambios...";
-            diffModal.show();
-            try {
-                const res = await fetch('manage.php', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ id, action: 'diff' })
-                });
-                const data = await res.json();
-                document.getElementById('diff-content').innerText = data.output || "No hay cambios detectados (capa limpia).";
-            } catch (e) { document.getElementById('diff-content').innerText = "Error de red."; }
-        }
-
-        async function showHistory(id) {
-            document.getElementById('historyModalLabel').innerText = `Historial: ${id}`;
-            document.getElementById('history-content').innerText = "Cargando historial...";
-            historyModal.show();
-            try {
-                const res = await fetch('manage.php', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ id, action: 'history' })
-                });
-                const data = await res.json();
-                document.getElementById('history-content').innerText = data.output || "Sin historial disponible.";
-            } catch (e) { document.getElementById('history-content').innerText = "Error."; }
-        }
-
-        async function openGitHub(repoName, id) {
-            try {
-                const res = await fetch('manage.php', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ id, action: 'inspect' })
-                });
-                const data = await res.json();
-                const inspect = JSON.parse(data.output);
-                const labels = inspect[0]?.Config?.Labels || {};
-
-                let url = labels['org.opencontainers.image.source'] ||
-                          labels['org.opencontainers.image.url'] ||
-                          labels['org.label-schema.vcs-url'];
-
-                if (url) {
-                    window.open(url, '_blank');
-                } else {
-                    // Si no tiene etiqueta de origen, buscamos en GitHub por el nombre del repo
-                    const searchName = repoName.includes('/') ? repoName : repoName;
-                    window.open(`https://github.com/search?q=${encodeURIComponent(searchName)}`, '_blank');
-                }
-            } catch (e) {
-                console.error("Error al buscar el repositorio:", e);
-                window.open(`https://github.com/search?q=${encodeURIComponent(repoName)}`, '_blank');
-            }
-        }
-
-        function setSort(type, key) {
-            if (sortConfigs[type].key === key) sortConfigs[type].direction = sortConfigs[type].direction === 'asc' ? 'desc' : 'asc';
-            else { sortConfigs[type].key = key; sortConfigs[type].direction = 'asc'; }
-            updateSortIcons(); renderAll();
-        }
-
-        function updateSortIcons() {
-            document.querySelectorAll('.sort-icon').forEach(i => i.className = 'bi bi-arrow-down-up sort-icon');
-            ['stats', 'list', 'images'].forEach(type => {
-                const icon = document.getElementById(`sort-${type}-${sortConfigs[type].key}`);
-                if (icon) icon.className = `bi bi-sort-numeric-${sortConfigs[type].direction === 'asc' ? 'down' : 'up'} sort-icon sort-active`;
-            });
-        }
-
-        function parseValue(val) {
-            if (typeof val !== 'string') return val;
-            const cleanVal = val.replace(/[%\s]/g, '').toLowerCase();
-            const units = { 'b': 1, 'kb': 1024, 'mb': 1024**2, 'gb': 1024**3, 'tb': 1024**4 };
-            const match = val.toLowerCase().match(/^([\d.]+)\s*([a-z]+)/);
-            if (match && units[match[2]]) return parseFloat(match[1]) * units[match[2]];
-            return isNaN(cleanVal) ? cleanVal : parseFloat(cleanVal);
+                const res = await fetch('info.php', {headers:{'X-Requested-With':'XMLHttpRequest'}});
+                if(res.status===401) window.location.reload();
+                const d = await res.json();
+                document.getElementById('sum-cpu-usage').innerText = `${d.host_load['1m'].toFixed(2)} (Load)`;
+                document.getElementById('sum-os-info').innerText = `${d.os} (${d.cpus} CPUs)`;
+                document.getElementById('sum-mem-usage').innerText = `${(d.host_mem.used/(1024**3)).toFixed(2)} GB`;
+                document.getElementById('sum-mem-total').innerText = `Total: ${(d.host_mem.total/(1024**3)).toFixed(2)} GB (${d.host_mem.percent}%)`;
+                document.getElementById('sum-cont-running').innerText = `${d.containers.running} Activos`;
+                document.getElementById('sum-cont-total').innerText = `Total: ${d.containers.total} (${d.containers.stopped} off)`;
+                document.getElementById('sum-img-count').innerText = `${d.images.count} Imágenes`;
+                document.getElementById('sum-img-size').innerText = `Tamaño: ${d.images.size}`;
+            } catch(e){}
         }
 
         function renderAll() { renderStats(); renderList(); renderImages(); }
 
+        function parseValue(v) {
+            if (typeof v !== 'string') return v;
+            const clean = v.replace(/[%\s]/g, '').toLowerCase();
+            const units = { 'b': 1, 'kb': 1024, 'mb': 1024**2, 'gb': 1024**3, 'tb': 1024**4 };
+            const m = v.toLowerCase().match(/^([\d.]+)\s*([a-z]+)/);
+            if (m && units[m[2]]) return parseFloat(m[1]) * units[m[2]];
+            return isNaN(clean) ? clean : parseFloat(clean);
+        }
+
         function renderStats() {
             const body = document.getElementById('stats-body');
-            const sorted = [...statsData].sort((a, b) => {
-                const vA = parseValue(a[sortConfigs.stats.key]);
-                const vB = parseValue(b[sortConfigs.stats.key]);
+            const sorted = [...statsData].sort((a,b) => {
+                const vA = parseValue(a[sortConfigs.stats.key]), vB = parseValue(b[sortConfigs.stats.key]);
                 return sortConfigs.stats.direction === 'asc' ? (vA > vB ? 1 : -1) : (vA < vB ? 1 : -1);
             });
-            body.innerHTML = sorted.map(c => {
-                const cpuVal = parseValue(c.CPUPerc);
-                const memVal = parseValue(c.MemPerc);
-                let rowClass = "";
-                let badgeClass = "bg-dark border-info text-info";
-
-                if (cpuVal > 80 || memVal > 80) {
-                    rowClass = "row-danger";
-                    badgeClass = "bg-danger text-white";
-                } else if (cpuVal > 50 || memVal > 50) {
-                    rowClass = "row-warning";
-                    badgeClass = "bg-warning text-dark";
-                }
-
-                return `
-                <tr class="${rowClass}">
-                    <td><div class="d-flex align-items-center"><i class="bi bi-box-seam text-info me-2"></i><span class="fw-bold">${c.Name}</span></div></td>
-                    <td><span class="badge border ${badgeClass}">${c.CPUPerc}</span></td>
-                    <td><span class="text-tiny">${c.MemUsage}</span></td>
-                    <td>
-                        <div class="progress" style="height: 6px; width: 60px;">
-                            <div class="progress-bar ${cpuVal > 80 ? 'bg-danger' : (cpuVal > 50 ? 'bg-warning' : 'bg-info')}" style="width: ${c.MemPerc}"></div>
-                        </div>
-                        <small class="text-secondary text-tiny">${c.MemPerc}</small>
-                    </td>
-                    <td><span class="text-tiny">${c.NetIO}</span></td>
-                    <td><span class="text-tiny">${c.BlockIO}</span></td>
-                </tr>
-            `}).join('');
+            body.innerHTML = sorted.map(c => `<tr class="${parseValue(c.CPUPerc)>80?'row-danger':''}"><td><b>${c.Name}</b></td><td><span class="badge bg-dark border border-info text-info">${c.CPUPerc}</span></td><td>${c.MemUsage}</td><td><div class="progress" style="height:6px;width:60px;"><div class="progress-bar bg-info" style="width:${c.MemPerc}"></div></div><small>${c.MemPerc}</small></td><td>${c.NetIO}</td><td>${c.BlockIO}</td></tr>`).join('');
         }
 
         function renderList() {
             const body = document.getElementById('list-body');
-            const sorted = [...listData].sort((a, b) => {
-                let vA = a[sortConfigs.list.key];
-                let vB = b[sortConfigs.list.key];
-
-                if (sortConfigs.list.key === 'Ports') {
-                    const getPort = (s) => {
-                        const m = (s || '').match(/:(\d+)->/);
-                        return m ? parseInt(m[1]) : 0;
-                    };
-                    vA = getPort(vA);
-                    vB = getPort(vB);
-                } else {
-                    vA = (vA || '').toLowerCase();
-                    vB = (vB || '').toLowerCase();
-                }
-
-                if (vA === vB) return 0;
+            const sorted = [...listData].sort((a,b) => {
+                let vA = a[sortConfigs.list.key], vB = b[sortConfigs.list.key];
+                if(sortConfigs.list.key === 'Ports') {
+                    const getP = (s) => { const m = (s||'').match(/:(\d+)->/); return m ? parseInt(m[1]) : 0; };
+                    vA = getP(vA); vB = getP(vB);
+                } else { vA = (vA||'').toLowerCase(); vB = (vB||'').toLowerCase(); }
                 return sortConfigs.list.direction === 'asc' ? (vA > vB ? 1 : -1) : (vA < vB ? 1 : -1);
             });
             body.innerHTML = sorted.map(c => {
-                const isUp = c.Status.toLowerCase().includes('up');
-                const isPaused = c.Status.toLowerCase().includes('paused');
-
-                // Parsing de puertos para visualización rica
-                const portMappings = (c.Ports || '').split(',').map(p => {
-                    const part = p.trim();
-                    const match = part.match(/(?:(?:[\d.]+)|(?:::)):(\d+)->(\d+)\/(\w+)/);
-                    return match ? { host: match[1], container: match[2], proto: match[3] } : null;
-                }).filter(p => p !== null);
-
-                const portsHtml = portMappings.length > 0 ? portMappings.map(m => `
-                    <div class="mb-1 text-tiny">
-                        <code class="text-light">${m.host}</code><i class="bi bi-arrow-right mx-1 text-secondary"></i><code class="text-secondary">${m.container}</code>
-                    </div>
-                `).join('') : '<small class="text-secondary">-</small>';
-
-                const openButtonsHtml = portMappings.map(m => `
-                    <a href="http://${window.location.hostname}:${m.host}" target="_blank" class="btn btn-indigo btn-action" title="Abrir Puerto ${m.host}">
-                        <i class="bi bi-box-arrow-up-right"></i>
-                    </a>
-                `).join('');
-
-                return `
-                <tr>
-                    <td><span class="fw-bold text-info">${c.Names}</span></td>
-                    <td><code class="text-secondary small">${c.ID}</code></td>
-                    <td><i class="bi bi-circle-fill me-2 ${isUp ? 'status-up' : 'status-down'}" style="font-size: 0.7rem;"></i><span class="text-tiny">${c.Status}</span></td>
-                    <td>${portsHtml}</td>
+                const isUp = c.Status.toLowerCase().includes('up'), isPaused = c.Status.toLowerCase().includes('paused');
+                const ports = (c.Ports || '').split(',').map(p => {
+                    const m = p.trim().match(/:(\d+)->(\d+)\/(\w+)/);
+                    return m ? {h:m[1], c:m[2]} : null;
+                }).filter(p=>p);
+                const openBtns = ports.map(p => `<a href="http://${window.location.hostname}:${p.h}" target="_blank" class="btn btn-indigo btn-action"><i class="bi bi-box-arrow-up-right"></i></a>`).join('');
+                return `<tr>
+                    <td><b class="text-info">${c.Names}</b></td>
+                    <td><code>${c.ID}</code></td>
+                    <td><i class="bi bi-circle-fill me-2 ${isUp?'status-up':'status-down'}"></i>${c.Status}</td>
+                    <td>${ports.map(p=>`<div><code>${p.h}</code>-><code>${p.c}</code></div>`).join('') || '-'}</td>
                     <td class="text-nowrap">
-                        <button class="btn btn-info btn-action" onclick="handleAction('${c.ID}', 'logs', this)" title="Logs"><i class="bi bi-eye"></i></button>
-                        <button class="btn btn-teal btn-action" onclick="handleAction('${c.ID}', 'inspect', this)" title="Inspeccionar"><i class="bi bi-search"></i></button>
-                        <button class="btn btn-secondary btn-action" onclick="showTop('${c.ID}')" title="Procesos (Top)"><i class="bi bi-list-task"></i></button>
-                        <button class="btn btn-orange btn-action" onclick="showDiff('${c.ID}')" title="Cambios (Diff)"><i class="bi bi-file-earmark-diff"></i></button>
-                        <button class="btn btn-primary btn-action" onclick="handleAction('${c.ID}', 'restart', this)" title="Reiniciar"><i class="bi bi-arrow-clockwise"></i></button>
-                        <button class="btn btn-success btn-action" onclick="handleAction('${c.ID}', 'set_restart', this)" title="Auto-reinicio (unless-stopped)"><i class="bi bi-shield-check"></i></button>
-                        ${isUp ? (isPaused
-                            ? `<button class="btn btn-success btn-action" onclick="handleAction('${c.ID}', 'unpause', this)" title="Reanudar"><i class="bi bi-play-circle"></i></button>`
-                            : `<button class="btn btn-warning btn-action" onclick="handleAction('${c.ID}', 'pause', this)" title="Pausar"><i class="bi bi-pause-circle"></i></button>`
-                        ) : ''}
-                        ${isUp ? `<button class="btn btn-danger btn-action" onclick="handleAction('${c.ID}', 'stop', this)" title="Stop"><i class="bi bi-stop-fill"></i></button>`
-                               : `<button class="btn btn-success btn-action" onclick="handleAction('${c.ID}', 'start', this)" title="Start"><i class="bi bi-play-fill"></i></button>`}
-                        <button class="btn btn-magenta btn-action" onclick="handleAction('${c.ID}', 'rm', this)" title="Borrar"><i class="bi bi-trash"></i></button>
-                        ${openButtonsHtml}
+                        <button class="btn btn-info btn-action" onclick="showLogs('${c.ID}')"><i class="bi bi-eye"></i></button>
+                        <button class="btn btn-teal btn-action" onclick="handleAction('${c.ID}', 'inspect', this)"><i class="bi bi-search"></i></button>
+                        <button class="btn btn-secondary btn-action" onclick="showTop('${c.ID}')"><i class="bi bi-list-task"></i></button>
+                        <button class="btn btn-orange btn-action" onclick="showDiff('${c.ID}')"><i class="bi bi-file-earmark-diff"></i></button>
+                        <button class="btn btn-primary btn-action" onclick="handleAction('${c.ID}', 'restart', this)"><i class="bi bi-arrow-clockwise"></i></button>
+                        <button class="btn btn-success btn-action" onclick="handleAction('${c.ID}', 'set_restart', this)"><i class="bi bi-shield-check"></i></button>
+                        ${isUp ? (isPaused ? `<button class="btn btn-success btn-action" onclick="handleAction('${c.ID}', 'unpause', this)"><i class="bi bi-play-circle"></i></button>` : `<button class="btn btn-warning btn-action" onclick="handleAction('${c.ID}', 'pause', this)"><i class="bi bi-pause-circle"></i></button>`) : ''}
+                        ${isUp ? `<button class="btn btn-danger btn-action" onclick="handleAction('${c.ID}', 'stop', this)"><i class="bi bi-stop-fill"></i></button>` : `<button class="btn btn-success btn-action" onclick="handleAction('${c.ID}', 'start', this)"><i class="bi bi-play-fill"></i></button>`}
+                        <button class="btn btn-magenta btn-action" onclick="handleAction('${c.ID}', 'rm', this)"><i class="bi bi-trash"></i></button>
+                        ${openBtns}
                     </td>
-                </tr>
-            `}).join('');
+                </tr>`;
+            }).join('');
         }
 
         function renderImages() {
             const body = document.getElementById('images-body');
-            const sorted = [...imagesData].sort((a, b) => {
-                const vA = parseValue(a[sortConfigs.images.key]);
-                const vB = parseValue(b[sortConfigs.images.key]);
-                return sortConfigs.images.direction === 'asc' ? (vA > vB ? 1 : -1) : (vA < vB ? 1 : -1);
-            });
-
-            body.innerHTML = sorted.map(i => {
-                const fullRepoTag = i.Repository + ":" + i.Tag;
-                const usedBy = listData.filter(c => {
-                    // Coincidencia por nombre completo (repo:tag)
-                    if (c.Image === fullRepoTag) return true;
-                    // Coincidencia si el contenedor no tiene tag pero el repo coincide (asumiendo latest)
-                    if (c.Image === i.Repository && i.Tag === "latest") return true;
-                    // Coincidencia por ID (el ID en ps suele ser corto, ej: 12 caracteres)
-                    if (i.ID.startsWith(c.Image) || c.Image.startsWith(i.ID)) return true;
-                    return false;
-                }).map(c => c.Names);
-                return `
-                <tr>
-                    <td><span class="fw-bold text-info">${i.Repository}</span></td>
-                    <td><span class="badge bg-secondary">${i.Tag}</span></td>
-                    <td><code class="text-secondary small">${i.ID}</code></td>
-                    <td>
-                        <div class="badge-container">
-                            ${usedBy.length > 0
-                                ? usedBy.map(name => `<span class="badge bg-info text-dark text-tiny">${name}</span>`).join('')
-                                : '<small class="text-secondary text-tiny italic">Ninguno</small>'
-                            }
-                        </div>
-                    </td>
-                    <td><span class="badge bg-dark border border-secondary">${i.Size}</span></td>
-                    <td>
-                        <button class="btn btn-info btn-action" onclick="showHistory('${i.ID}')" title="Historial"><i class="bi bi-clock-history"></i></button>
-                        <button class="btn btn-light btn-action" onclick="openGitHub('${i.Repository}', '${i.ID}')" title="GitHub"><i class="bi bi-github"></i></button>
-                        <a href="download_image.php?id=${i.ID}&repo=${encodeURIComponent(i.Repository)}&tag=${encodeURIComponent(i.Tag)}" class="btn btn-success btn-action" title="Descargar .tar"><i class="bi bi-download"></i></a>
-                        <button class="btn btn-magenta btn-action" onclick="handleAction('${i.ID}', 'rmi', this)" title="Borrar Imagen"><i class="bi bi-trash"></i></button>
-                    </td>
-                </tr>
-            `}).join('');
+            body.innerHTML = imagesData.map(i => `<tr><td><b>${i.Repository}</b></td><td><span class="badge bg-secondary">${i.Tag}</span></td><td><code>${i.ID}</code></td><td>${listData.filter(c=>c.Image.includes(i.ID)).map(c=>`<span class="badge bg-info text-dark">${c.Names}</span>`).join('')}</td><td>${i.Size}</td><td class="text-nowrap"><button class="btn btn-info btn-action" onclick="showHistory('${i.ID}')"><i class="bi bi-clock-history"></i></button><button class="btn btn-light btn-action" onclick="openGitHub('${i.Repository}','${i.ID}')"><i class="bi bi-github"></i></button><a href="download_image.php?id=${i.ID}&repo=${i.Repository}&tag=${i.Tag}" class="btn btn-success btn-action"><i class="bi bi-download"></i></a><button class="btn btn-magenta btn-action" onclick="handleAction('${i.ID}', 'rmi', this)"><i class="bi bi-trash"></i></button></td></tr>`).join('');
         }
 
-        function renderPorts() {
-            const body = document.getElementById('ports-body');
-            const sorted = [...listData].sort((a, b) => {
-                const vA = a[sortConfigs.ports.key].toLowerCase();
-                const vB = b[sortConfigs.ports.key].toLowerCase();
-                return sortConfigs.ports.direction === 'asc' ? (vA > vB ? 1 : -1) : (vA < vB ? 1 : -1);
-            });
-
-            let html = '';
-            sorted.forEach(c => {
-                if (!c.Ports || c.Ports === '-') return;
-
-                const portMappings = c.Ports.split(',').map(p => {
-                    const part = p.trim();
-                    const match = part.match(/(?:(?:[\d.]+)|(?:::)):(\d+)->(\d+)\/(\w+)/);
-                    if (match) {
-                        return { host: match[1], container: match[2], proto: match[3] };
-                    }
-                    return null;
-                }).filter(p => p !== null);
-
-                portMappings.forEach(m => {
-                    html += `
-                    <tr>
-                        <td><span class="fw-bold text-info">${c.Names}</span></td>
-                        <td><code class="text-light">${m.host}</code></td>
-                        <td><code class="text-secondary">${m.container}</code></td>
-                        <td><span class="badge bg-dark border border-secondary">${m.proto.toUpperCase()}</span></td>
-                        <td>
-                            <a href="http://${window.location.hostname}:${m.host}" target="_blank" class="btn btn-success btn-action">
-                                <i class="bi bi-box-arrow-up-right"></i> Abrir
-                            </a>
-                        </td>
-                    </tr>`;
-                });
-            });
-            body.innerHTML = html || '<tr><td colspan="4" class="text-center text-secondary">No hay puertos mapeados activos.</td></tr>';
+        function updateConsoleSelect() {
+            const s = document.getElementById('console-select');
+            const running = listData.filter(c => c.Status.toLowerCase().includes('up')).map(c => c.Names.startsWith('/')?c.Names.substring(1):c.Names);
+            const sig = running.sort().join('|');
+            if (s.dataset.signature === sig) return;
+            s.dataset.signature = sig;
+            const val = s.value;
+            s.innerHTML = '<option value="">Seleccionar Contenedor...</option>' + running.map(n => `<option value="${n}" ${n===val?'selected':''}>${n}</option>`).join('');
         }
 
-        async function fetchInfo() {
+        function updateComposeSelect() {
+            const s = document.getElementById('compose-select');
+            const sig = listData.map(c=>c.Names).sort().join('|');
+            if (s.dataset.signature === sig) return;
+            s.dataset.signature = sig;
+            const val = s.value;
+            s.innerHTML = '<option value="">Seleccionar Proyecto...</option>' + listData.map(c => `<option value="${c.ID}" ${c.ID===val?'selected':''}>${c.Names}</option>`).join('');
+        }
+
+        async function loadCompose(id) {
+            if(!id) return resetComposeEditor();
+            currentComposeContainerId = id;
             try {
-                const res = await fetch('info.php');
+                const res = await fetch(`get_compose.php?id=${id}`);
                 const data = await res.json();
-
-                // CPU & OS
-                document.getElementById('sum-cpu-usage').innerText = `${data.host_load['1m'].toFixed(2)} (Load)`;
-                document.getElementById('sum-os-info').innerText = `${data.os} (${data.cpus} CPUs)`;
-
-                // RAM
-                const usedGb = (data.host_mem.used / (1024**3)).toFixed(2);
-                const totalGb = (data.host_mem.total / (1024**3)).toFixed(2);
-                document.getElementById('sum-mem-usage').innerText = `${usedGb} GB`;
-                document.getElementById('sum-mem-total').innerText = `Total: ${totalGb} GB (${data.host_mem.percent}%)`;
-
-                // Contenedores
-                document.getElementById('sum-cont-running').innerText = `${data.containers.running} Activos`;
-                document.getElementById('sum-cont-total').innerText = `Total: ${data.containers.total} (${data.containers.stopped} off)`;
-
-                // Imágenes
-                document.getElementById('sum-img-count').innerText = `${data.images.count} Imágenes`;
-                document.getElementById('sum-img-size').innerText = `Tamaño: ${data.images.size}`;
-
-            } catch (e) { console.error("Error fetching system info:", e); }
+                if(data.error) return alert(data.error);
+                currentComposePath = data.path;
+                document.getElementById('compose-path').innerText = `Ruta: ${data.path}`;
+                document.getElementById('compose-editor').value = data.content;
+                document.getElementById('compose-editor').disabled = false;
+                ['btn-compose-save','btn-compose-up','btn-compose-down'].forEach(id=>document.getElementById(id).disabled=false);
+            } catch(e){alert("Error al cargar");}
         }
 
-        function formatBytes(bytes, decimals = 2) {
-            if (bytes === 0) return '0 Bytes';
-            const k = 1024;
-            const dm = decimals < 0 ? 0 : decimals;
-            const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB'];
-            const i = Math.floor(Math.log(bytes) / Math.log(k));
-            return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + ' ' + sizes[i];
+        function resetComposeEditor() {
+            currentComposePath = null; currentComposeContainerId = null;
+            document.getElementById('compose-path').innerText = "Ruta: -";
+            document.getElementById('compose-editor').value = "";
+            document.getElementById('compose-editor').disabled = true;
+            ['btn-compose-save','btn-compose-up','btn-compose-down'].forEach(id=>document.getElementById(id).disabled=true);
         }
 
-        updateSortIcons(); updateData(); setInterval(updateData, 3000);
+        async function saveCompose() {
+            const btn = document.getElementById('btn-compose-save');
+            btn.disabled = true;
+            try {
+                const res = await fetch('save_compose.php', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({path:currentComposePath, content:document.getElementById('compose-editor').value})});
+                const d = await res.json();
+                alert(d.success?"Guardado":"Error: "+d.error);
+            } catch(e){alert("Error");} finally {btn.disabled = false;}
+        }
+
+        async function handleComposeAction(action) {
+            const btn = document.getElementById(action==='compose_up'?'btn-compose-up':'btn-compose-down');
+            const old = btn.innerHTML; btn.disabled = true; btn.innerHTML = '<span class="spinner-border spinner-border-sm"></span>';
+            try {
+                const res = await fetch('manage.php', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({id:currentComposeContainerId, action:action})});
+                const d = await res.json();
+                alert(d.success?d.output:d.error);
+                updateData();
+            } catch(e){alert("Error");} finally {btn.disabled=false; btn.innerHTML=old;}
+        }
+
+        async function handleAction(id, action, btn) {
+            if((action==='rm'||action==='rmi') && !confirm('¿Seguro?')) return;
+            const old = btn.innerHTML; btn.disabled = true; btn.innerHTML = '<span class="spinner-border spinner-border-sm"></span>';
+            try {
+                const res = await fetch('manage.php', {method:'POST', headers:{'Content-Type':'application/json','X-Requested-With':'XMLHttpRequest'}, body:JSON.stringify({id, action})});
+                if(res.status===401) window.location.reload();
+                const d = await res.json();
+                if(d.success) { await Promise.all([fetchStats(), fetchList(), fetchImages(), fetchInfo()]); renderAll(); }
+                else alert("Error: "+d.error);
+            } catch(e){alert("Error");} finally {btn.disabled=false; btn.innerHTML=old;}
+        }
+
+        function clearConsole() { document.getElementById('terminal-output').innerHTML = ''; }
+        function disconnectConsole() { currentContainer = null; document.getElementById('cmd-input').disabled = true; }
+
+        async function showLogs(id) {
+            logsModal.show(); document.getElementById('logs-content').innerText = "Cargando...";
+            const res = await fetch('manage.php', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({id, action:'logs'})});
+            const d = await res.json(); document.getElementById('logs-content').innerText = d.output;
+        }
+
+        async function showTop(id) {
+            topModal.show(); document.getElementById('top-content').innerText = "Cargando...";
+            const res = await fetch('manage.php', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({id, action:'top'})});
+            const d = await res.json(); document.getElementById('top-content').innerText = d.output;
+        }
+
+        async function showDiff(id) {
+            diffModal.show(); document.getElementById('diff-content').innerText = "Cargando...";
+            const res = await fetch('manage.php', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({id, action:'diff'})});
+            const d = await res.json(); document.getElementById('diff-content').innerText = d.output;
+        }
+
+        async function showHistory(id) {
+            historyModal.show(); document.getElementById('history-content').innerText = "Cargando...";
+            const res = await fetch('manage.php', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({id, action:'history'})});
+            const d = await res.json(); document.getElementById('history-content').innerText = d.output;
+        }
+
+        async function handleImport(input) {
+            const file = input.files[0]; if(!file) return;
+            const btn = document.getElementById('btn-import'); const old = btn.innerHTML;
+            btn.disabled = true; btn.innerHTML = 'Subiendo...';
+            const fd = new FormData(); fd.append('image_tar', file);
+            const res = await fetch('upload_image.php', {method:'POST', body:fd});
+            const d = await res.json();
+            alert(d.success?d.output:d.error);
+            btn.disabled = false; btn.innerHTML = old; input.value = ''; updateData();
+        }
+
+        function setSort(t,k) {
+            if(sortConfigs[t].key===k) sortConfigs[t].direction=sortConfigs[t].direction==='asc'?'desc':'asc';
+            else {sortConfigs[t].key=k; sortConfigs[t].direction='asc';}
+            renderAll();
+        }
+
+        document.getElementById('console-select').addEventListener('change', function(){ 
+            currentContainer = this.value;
+            document.getElementById('cmd-input').disabled = !this.value;
+            document.getElementById('btn-disconnect').disabled = !this.value;
+            if(this.value) {
+                document.getElementById('terminal-output').innerHTML = `<span class="text-success">Conectado a ${this.value}</span>\n`;
+                document.getElementById('cmd-input').focus();
+            }
+        });
+
+        document.getElementById('cmd-input').addEventListener('keydown', async function(e){
+            if(e.key==='Enter') {
+                const cmd = this.value.trim(); if(!cmd) return;
+                this.value = '';
+                document.getElementById('terminal-output').innerHTML += `root@docker:# ${cmd}\n`;
+                const res = await fetch('console.php', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({id:currentContainer, command:cmd, workdir:'/'})});
+                const d = await res.json();
+                document.getElementById('terminal-output').innerHTML += d.output + '\n';
+                document.getElementById('terminal-window').scrollTop = document.getElementById('terminal-window').scrollHeight;
+            }
+        });
+
+        updateData();
     </script>
 </body>
 </html>
