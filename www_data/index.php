@@ -416,7 +416,11 @@
             if (s.dataset.signature === sig) return;
             s.dataset.signature = sig;
             const val = s.value;
-            s.innerHTML = '<option value="">Seleccionar Contenedor...</option>' + running.map(n => `<option value="${n}" ${n===val?'selected':''}>${n}</option>`).join('');
+            
+            let html = '<option value="">Seleccionar Contenedor...</option>';
+            html += '<option value="dashboard_host" ' + ("dashboard_host"===val?'selected':'') + '>💻 Dashboard (Host)</option>';
+            html += running.map(n => `<option value="${n}" ${n===val?'selected':''}>${n}</option>`).join('');
+            s.innerHTML = html;
         }
 
         function updateComposeSelect() {
@@ -544,10 +548,13 @@
 
         document.getElementById('console-select').addEventListener('change', function(){ 
             currentContainer = this.value;
+            currentWorkdir = '/';
             document.getElementById('cmd-input').disabled = !this.value;
             document.getElementById('btn-disconnect').disabled = !this.value;
             if(this.value) {
-                document.getElementById('terminal-output').innerHTML = `<span class="text-success">Conectado a ${this.value}</span>\n`;
+                const isHost = this.value === 'dashboard_host';
+                document.getElementById('prompt-label').innerText = isHost ? `www-data@host:${currentWorkdir}#` : `root@${this.value}:${currentWorkdir}#`;
+                document.getElementById('terminal-output').innerHTML = `<span class="text-success">Conectado a ${isHost ? '💻 Dashboard (Host)' : this.value}</span>\n`;
                 document.getElementById('cmd-input').focus();
             }
         });
@@ -556,10 +563,18 @@
             if(e.key==='Enter') {
                 const cmd = this.value.trim(); if(!cmd) return;
                 this.value = '';
-                document.getElementById('terminal-output').innerHTML += `root@docker:# ${cmd}\n`;
-                const res = await fetch('console.php', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({id:currentContainer, command:cmd, workdir:'/'})});
+                const prompt = document.getElementById('prompt-label').innerText;
+                document.getElementById('terminal-output').innerHTML += `${prompt} ${cmd}\n`;
+                const res = await fetch('console.php', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({id:currentContainer, command:cmd, workdir:currentWorkdir})});
                 const d = await res.json();
-                document.getElementById('terminal-output').innerHTML += d.output + '\n';
+                
+                if(d.newWorkdir) {
+                    currentWorkdir = d.newWorkdir;
+                    const isHost = currentContainer === 'dashboard_host';
+                    document.getElementById('prompt-label').innerText = isHost ? `www-data@host:${currentWorkdir}#` : `root@${currentContainer}:${currentWorkdir}#`;
+                }
+                
+                document.getElementById('terminal-output').innerHTML += (d.output || '') + '\n';
                 document.getElementById('terminal-window').scrollTop = document.getElementById('terminal-window').scrollHeight;
             }
         });

@@ -16,7 +16,27 @@ if (!$id || !$command) {
 // Limpieza básica del comando
 $command = trim($command);
 
-// Detectamos si es un intento de cambio de directorio
+// Lógica para el host real (Dashboard)
+if ($id === 'dashboard_host') {
+    // Si es un cambio de directorio, lo resolvemos localmente
+    if (preg_match('/^cd\s+(.+)$/', $command, $matches)) {
+        $targetDir = $matches[1];
+        $output = shell_exec(sprintf('cd %s && cd %s && pwd 2>&1', escapeshellarg($workdir), escapeshellarg($targetDir)));
+        $newDir = trim($output);
+        if ($newDir && strpos($newDir, '/') === 0) {
+            echo json_encode(["output" => "", "newWorkdir" => $newDir]);
+        } else {
+            echo json_encode(["output" => $output]);
+        }
+        exit;
+    }
+    // Ejecución local normal
+    $output = shell_exec(sprintf('cd %s && %s 2>&1', escapeshellarg($workdir), $command));
+    echo json_encode(["output" => $output]);
+    exit;
+}
+
+// Detectamos si es un intento de cambio de directorio en un contenedor
 if (preg_match('/^cd\s+(.+)$/', $command, $matches)) {
     $targetDir = $matches[1];
     // Intentamos cambiar de directorio y obtener la ruta absoluta resultante

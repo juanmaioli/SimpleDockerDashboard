@@ -17,7 +17,7 @@ Una interfaz web minimalista, liviana y **totalmente autocontenida** para gestio
 -   🔍 **Monitoreo y Auditoría:** Visualiza procesos activos (`top`) y cambios en el sistema de archivos (`diff`) en tiempo real.
 -   🖼️ **Gestión de Imágenes:** Listado completo, historial de capas y herramientas de **Importación/Exportación** mediante archivos `.tar`.
 -   🔗 **Repositorios GitHub:** Acceso directo al código fuente de las imágenes (detección automática o búsqueda).
--   🐚 **Terminal Integrada:** Acceso directo vía shell (`docker exec`) desde el navegador.
+-   🐚 **Terminal Integrada:** Acceso directo vía shell (`docker exec`) desde el navegador. Ahora incluye un modo de **Terminal del Host** para administrar el entorno del dashboard directamente.
 -   🔐 **Seguridad:** Autenticación simple basada en sesiones y variables de entorno.
 -   🎨 **Diseño Moderno:** Interfaz oscura basada en el tema Dracula y Bootstrap 5.3.
 -   🌐 **Offline-Ready:** Todas las dependencias (Bootstrap, Iconos, Fuentes) están incluidas localmente.
