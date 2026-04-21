@@ -378,26 +378,31 @@
             });
             body.innerHTML = sorted.map(c => {
                 const isUp = c.Status.toLowerCase().includes('up'), isPaused = c.Status.toLowerCase().includes('paused');
+                const seenPorts = new Set();
                 const ports = (c.Ports || '').split(',').map(p => {
                     const m = p.trim().match(/:(\d+)->(\d+)\/(\w+)/);
-                    return m ? {h:m[1], c:m[2]} : null;
+                    if (!m) return null;
+                    const signature = `${m[1]}->${m[2]}`;
+                    if (seenPorts.has(signature)) return null;
+                    seenPorts.add(signature);
+                    return {h:m[1], c:m[2]};
                 }).filter(p=>p);
-                const openBtns = ports.map(p => `<a href="http://${window.location.hostname}:${p.h}" target="_blank" class="btn btn-indigo btn-action"><i class="bi bi-box-arrow-up-right"></i></a>`).join('');
+                const openBtns = ports.map(p => `<a href="http://${window.location.hostname}:${p.h}" target="_blank" class="btn btn-indigo btn-action" title="Abrir puerto ${p.h}"><i class="bi bi-box-arrow-up-right"></i> </a>`).join('');
                 return `<tr>
                     <td><b class="text-info">${c.Names}</b></td>
                     <td><code>${c.ID}</code></td>
                     <td><i class="bi bi-circle-fill me-2 ${isUp?'status-up':'status-down'}"></i>${c.Status}</td>
                     <td>${ports.map(p=>`<div><code>${p.h}</code>-><code>${p.c}</code></div>`).join('') || '-'}</td>
                     <td class="text-nowrap">
-                        <button class="btn btn-info btn-action" onclick="showLogs('${c.ID}')"><i class="bi bi-eye"></i></button>
-                        <button class="btn btn-teal btn-action" onclick="handleAction('${c.ID}', 'inspect', this)"><i class="bi bi-search"></i></button>
-                        <button class="btn btn-secondary btn-action" onclick="showTop('${c.ID}')"><i class="bi bi-list-task"></i></button>
-                        <button class="btn btn-orange btn-action" onclick="showDiff('${c.ID}')"><i class="bi bi-file-earmark-diff"></i></button>
-                        <button class="btn btn-primary btn-action" onclick="handleAction('${c.ID}', 'restart', this)"><i class="bi bi-arrow-clockwise"></i></button>
-                        <button class="btn btn-success btn-action" onclick="handleAction('${c.ID}', 'set_restart', this)"><i class="bi bi-shield-check"></i></button>
-                        ${isUp ? (isPaused ? `<button class="btn btn-success btn-action" onclick="handleAction('${c.ID}', 'unpause', this)"><i class="bi bi-play-circle"></i></button>` : `<button class="btn btn-warning btn-action" onclick="handleAction('${c.ID}', 'pause', this)"><i class="bi bi-pause-circle"></i></button>`) : ''}
-                        ${isUp ? `<button class="btn btn-danger btn-action" onclick="handleAction('${c.ID}', 'stop', this)"><i class="bi bi-stop-fill"></i></button>` : `<button class="btn btn-success btn-action" onclick="handleAction('${c.ID}', 'start', this)"><i class="bi bi-play-fill"></i></button>`}
-                        <button class="btn btn-magenta btn-action" onclick="handleAction('${c.ID}', 'rm', this)"><i class="bi bi-trash"></i></button>
+                        <button class="btn btn-info btn-action" onclick="showLogs('${c.ID}')" title="Ver Logs"><i class="bi bi-eye"></i></button>
+                        <button class="btn btn-teal btn-action" onclick="handleAction('${c.ID}', 'inspect', this)" title="Inspeccionar"><i class="bi bi-info-circle"></i></button>
+                        <button class="btn btn-secondary btn-action" onclick="showTop('${c.ID}')" title="Procesos (Top)"><i class="bi bi-list-task"></i></button>
+                        <button class="btn btn-orange btn-action" onclick="showDiff('${c.ID}')" title="Cambios FS"><i class="bi bi-file-earmark-diff"></i></button>
+                        <button class="btn btn-primary btn-action" onclick="handleAction('${c.ID}', 'restart', this)" title="Reiniciar"><i class="bi bi-arrow-clockwise"></i></button>
+                        <button class="btn btn-success btn-action" onclick="handleAction('${c.ID}', 'set_restart', this)" title="Política de Reinicio"><i class="bi bi-shield-check"></i></button>
+                        ${isUp ? (isPaused ? `<button class="btn btn-success btn-action" onclick="handleAction('${c.ID}', 'unpause', this)" title="Reanudar"><i class="bi bi-play-circle"></i></button>` : `<button class="btn btn-warning btn-action" onclick="handleAction('${c.ID}', 'pause', this)" title="Pausar"><i class="bi bi-pause-circle"></i></button>`) : ''}
+                        ${isUp ? `<button class="btn btn-danger btn-action" onclick="handleAction('${c.ID}', 'stop', this)" title="Detener"><i class="bi bi-stop-fill"></i></button>` : `<button class="btn btn-success btn-action" onclick="handleAction('${c.ID}', 'start', this)" title="Iniciar"><i class="bi bi-play-fill"></i></button>`}
+                        <button class="btn btn-magenta btn-action" onclick="handleAction('${c.ID}', 'rm', this)" title="Eliminar"><i class="bi bi-trash"></i></button>
                         ${openBtns}
                     </td>
                 </tr>`;
