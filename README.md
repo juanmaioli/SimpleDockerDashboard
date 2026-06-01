@@ -18,6 +18,7 @@ Una interfaz web minimalista, liviana y **totalmente autocontenida** para gestio
 -   🖼️ **Gestión de Imágenes:** Listado completo, historial de capas y herramientas de **Importación/Exportación** mediante archivos `.tar`.
 -   🔗 **Repositorios GitHub:** Acceso directo al código fuente de las imágenes (detección automática o búsqueda).
 -   🐚 **Terminal Integrada:** Acceso directo vía shell (`docker exec`) desde el navegador. Ahora incluye un modo de **Terminal del Host** para administrar el entorno del dashboard directamente.
+-   🔒 **Soporte SSL/HTTPS Nativo:** Acceso seguro cifrado por HTTPS configurando certificados SSL locales en el servidor Apache interno.
 -   🔐 **Seguridad:** Autenticación simple basada en sesiones y variables de entorno.
 -   🎨 **Diseño Moderno:** Interfaz oscura basada en el tema Dracula y Bootstrap 5.3.
 -   🌐 **Offline-Ready:** Todas las dependencias (Bootstrap, Iconos, Fuentes) están incluidas localmente.
@@ -30,20 +31,26 @@ Una interfaz web minimalista, liviana y **totalmente autocontenida** para gestio
     cd SimpleDockerDashboard
     ```
 
-2.  **Configurar variables de entorno:**
+2.  **Configurar certificados SSL:**
+    Coloca tu certificado y clave privada en el directorio de Apache:
+    - Certificado: `./apache_data/ssl/apache.crt`
+    - Clave privada: `./apache_data/ssl/apache.key`
+
+3.  **Configurar variables de entorno:**
     Crea un archivo `.env` en la raíz del proyecto:
     ```text
     DASHBOARD_USER=admin
     DASHBOARD_PASS=tu_password_seguro
     ```
 
-3.  **Desplegar con Docker Compose:**
+4.  **Desplegar con Docker Compose:**
     ```bash
     docker compose up -d --build
     ```
 
-4.  **Acceder:**
-    Abre tu navegador en [http://localhost:6080](http://localhost:6080)
+5.  **Acceder:**
+    - Acceso HTTPS seguro: [https://localhost:6080](https://localhost:6080)
+    - Acceso HTTP de respaldo: [http://localhost:6081](http://localhost:6081)
 
 ## 🏗️ Arquitectura
 

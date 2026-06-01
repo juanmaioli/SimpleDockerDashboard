@@ -26,8 +26,9 @@ COPY ./php_data/php.ini /usr/local/etc/php/php.ini
 
 # Corregimos el problema de los módulos: 
 # Eliminamos archivos reales en mods-enabled que deberían ser symlinks para que a2enmod no falle
-RUN rm -f /etc/apache2/mods-enabled/rewrite.load /etc/apache2/mods-enabled/headers.load \
-    && a2enmod rewrite headers
+RUN rm -f /etc/apache2/mods-enabled/rewrite.load /etc/apache2/mods-enabled/headers.load /etc/apache2/mods-enabled/mime.load /etc/apache2/mods-enabled/mime.conf \
+    && a2enmod rewrite headers ssl \
+    && a2ensite default-ssl
 
 # Creamos el grupo docker con el GID correcto (126) para que coincida con el host
 # Y agregamos www-data a ese grupo
